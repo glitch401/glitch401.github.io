@@ -1,0 +1,19 @@
+---
+layout: page
+title: Projects
+---
+<section class="list">
+    {% for post in site.posts %}
+        {% if post.projects %}
+            {% if post.draft == false %}
+                <div class="item {% if post.star %}star{% endif %}">
+                    <a class="url" href="{% if post.externalLink %}{{ post.externalLink }}{% else %}{{ site.url }}{{ post.url }}{% endif %}">
+                        <aside class="date"><time datetime="{{ post.date | date:"%d-%m-%Y" }}">{{ post.date | date: "%b %d %Y" }}</time></aside>
+      <aside class="tags item">{% for tag in post.tags %} <span class="tagblog"> {{ tag }}</span>{% endfor %}</aside>
+                        {{ post.jemoji }}<h3 class="title">{{ post.title }}</h3>
+                    </a>
+                </div>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+</section>

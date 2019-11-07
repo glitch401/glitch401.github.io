@@ -1,0 +1,13 @@
+---
+title: "Generic Indian Signpost translation"
+date: 2018-06-15 13:10
+layout: post
+projects: true
+hidden: false
+tag:
+- Android
+- Computer Vision
+- Research
+category: project
+author: Indranil Biswas
+---

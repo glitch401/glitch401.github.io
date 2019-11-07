@@ -1,0 +1,50 @@
+---
+title: "Automated Subjective Question Answering "
+date: 2019-09-13 13:10
+layout: post
+projects: true
+hidden: false
+tag:
+- Research
+- NLP
+category: project
+author: Indranil Biswas
+summary: "Part 1 of a step by step non-coder's guide to setting up a personal site on Github"
+---
+<style>
+p::first-letter {
+  font-size: 200%;
+  /*color: #8A2BE2;*/
+}
+</style>
+<center><img class="image" src="../assets/images/aqa.jpeg"  style="width:50%;" alt="Automated QnA"></center>
+<p>
+While working as a	
+<a href="https://glitch401.github.io/Ekalavya-Inrern-IITB/" target="_blank">research intern at IIT Bombay</a>, on Peer Assessment for <a href="https://www.sunbird.org" target="_blank">Sunbird</a>. I thought if we could automate the whole process of peer assessment.
+<center>
+	<img src="https://group5hah.files.wordpress.com/2014/11/blog-resource-pic.jpg" style="width:40%;" alt="1:1 Peer Assessment">
+	<br><caption>1:1 Peer Assessment</caption>
+</center>
+<br>
+ But peer assessment takes into consideration multiple answers to a question: solely answered by the moderator for the assessment task so, the evaluating peers might read the sample answer provided by the moderator as an exemplar and rank their peer's responses on various attributes. 
+<br>
+Hence, to make the process wholly automated, the system would have to come up with its answer for the posed question, in natural language.
+<br>
+ I thought if there was still a room I could contribute to. Furthermore, on a thorough read, I came to the discovery that none of the publications focused on solving the problem with a bias in answering an academic question.
+ Similarly, the slightest sign of an opportunity soon became a <font style='font-size: 105%;color:black'>real challenge</font> to as there was no dataset present on the web so that the model created out of it would be biased to answer a question in a way as to mimic a connoisseur of academia.
+<br>
+It took relentless searches on the web to finally conclude with the decision of <font style='font-size: 105%;color:black'> <a href="https://glitch401.github.io/ncert-dataset/"> making a new dataset from scratch</a></font>!
+<br>
+Making it an even a grater convoluted problem was the fact that, all the guidance that I could get was the '<font style='font-size: 110%;color:black'>Internet</font>'. 
+
+Eventually discovering various sources to solve the SQuAD. And various for Reading comprehension and text generations ranging from AllenNLP to GPT2.
+<br>
+I have recently come up with a model answering to the question asked from a limited scope: NCERT syllabus, which will soon be published and the source code will be made available for the public [on <font style='font-size: 105%;color:black'>December 20th 2019</font>].
+
+Meanwhile, some among the many successful Answers from the system:
+<center>
+	<img src="../assets/images/Q1.png">
+	<img src="../assets/images/Q2.png">
+</center>
+<br>
+</p>
