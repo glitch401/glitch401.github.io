@@ -1,6 +1,6 @@
 # main text of home
 name: Indranil Biswas
-bio: Someone who turns coffee to code<br>{Computer Science Undergrad}<br>Machine Learning, NLP and interdisciplinary practitioner.
+bio: Final Year Undregraduate, majoring in CS<br>Machine Learning, NLP and interdisciplinary practitioner.
 
 # twitter summary info
 description: A blog about technology and personal 'life-marks' stuff related
@@ -31,15 +31,15 @@ highlighter: rouge
 # analytics-piwik-id: 1
 
 # if you don't want comments in your posts, leave categories empty
-disqus:
-  shortname: # enter this from your disqus account
-  categories: # only show disqus for posts that have these categories
+#disqus:
+#  shortname: # enter this from your disqus account
+#  categories: # only show disqus for posts that have these categories
 
 # if you don't have any of social below, comment the line
 #facebook: indranil.biswas.520
 #twitter: indranilbiswas7
 # google: mygoogle
-instagram: foolish_hunger
+#instagram: foolish_hunger
 # pinterest: mypinterest
 github: glitch401
 linkedin: indranilbiswas7
@@ -57,20 +57,21 @@ linkedin: indranilbiswas7
 email: indranilbiswas7@gmail.com
 
 authors:
-    johndoe:
+    indranilbiswas:
         name: Indranil Biswas
-        bio: A good person.
+        bio: a nice chap
 # do you want a larger site? change the option below
 # options: [normal, large] | default: normal
 # normal = 560px / large = 810px
 width: large
 
 # if you don't need pagination, comment the *paginate* configs below
-# paginate: 5
+#paginate: 5
 # paginate_path: "blog/:num/"
 
 # if you don't need projects, comment the *projects* configs below
 projects: true
+skills: false
 
 # if you don't need "about" or "blog", comment them out below
 about: true
@@ -86,10 +87,10 @@ show-tags: true
 related: true
 
 # Display links for next and previous posts for the specified categories
-post-advance-links: [blog]
+post-advance-links:
 
 # show author block at the end of a post ?
-show-author: true
+show-author: false
 
 # do you want some animations?
 animation: true
@@ -118,4 +119,4 @@ compress_html:
         - development
         - stage
 
-exclude: [README.md, Gemfile, Gemfile.lock, node_modules, gulpfile.js, package.json, _site, src, vendor, CNAME, indigo-gh-pages.zip, Rakefile, screen-shot.png, travis.sh, tasks]
+exclude: [README.md, Gemfile, Gemfile.lock, node_modules, gulpfile.js, package.json, _site, src, vendor, CNAME, indigo-gh-pages.zip, Rakefile, .travis.yml, screen-shot.png, travis.sh, tasks]

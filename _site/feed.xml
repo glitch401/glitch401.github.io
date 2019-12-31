@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.7.4">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-11-07T23:47:04+05:30</updated><id>http://localhost:4000/feed.xml</id><title type="html">Indranil Biswas</title><subtitle>A blog about technology and personal 'life-marks' stuff related</subtitle><entry><title type="html">NCERT QnAs: a new Dataset</title><link href="http://localhost:4000/ncert-dataset/" rel="alternate" type="text/html" title="NCERT QnAs: a new Dataset " /><published>2019-11-07T19:10:00+05:30</published><updated>2019-11-07T19:10:00+05:30</updated><id>http://localhost:4000/ncert-dataset-</id><content type="html" xml:base="http://localhost:4000/ncert-dataset/">&lt;style&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.7.4">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-12-31T21:35:58+05:30</updated><id>http://localhost:4000/feed.xml</id><title type="html">Indranil Biswas</title><subtitle>A blog about technology and personal 'life-marks' stuff related</subtitle><entry><title type="html">Fuzzy Classification on FakeNews</title><link href="http://localhost:4000/fuzzy-classification/" rel="alternate" type="text/html" title="Fuzzy Classification on FakeNews " /><published>2019-12-12T13:10:00+05:30</published><updated>2019-12-12T13:10:00+05:30</updated><id>http://localhost:4000/fuzzy-classification</id><content type="html" xml:base="http://localhost:4000/fuzzy-classification/"></content><author><name>Indranil Biswas</name></author><category term="project" /><category term="Research" /><category term="NLP" /><summary type="html"></summary></entry><entry><title type="html">NCERT QnAs: a new Dataset</title><link href="http://localhost:4000/ncert-dataset/" rel="alternate" type="text/html" title="NCERT QnAs: a new Dataset " /><published>2019-11-07T19:10:00+05:30</published><updated>2019-11-07T19:10:00+05:30</updated><id>http://localhost:4000/ncert-dataset-</id><content type="html" xml:base="http://localhost:4000/ncert-dataset/">&lt;style&gt;
 p::first-letter {
   font-size: 200%;
   /*color: #8A2BE2;*/
@@ -22,14 +22,14 @@ p::first-letter {
 
 &lt;center&gt;&lt;img class=&quot;image&quot; src=&quot;../assets/images/aqa.jpeg&quot; style=&quot;width:50%;&quot; alt=&quot;Automated QnA&quot; /&gt;&lt;/center&gt;
 &lt;p&gt;
-While working as a	
+While working as a
 &lt;a href=&quot;https://glitch401.github.io/Ekalavya-Inrern-IITB/&quot; target=&quot;_blank&quot;&gt;research intern at IIT Bombay&lt;/a&gt;, on Peer Assessment for &lt;a href=&quot;https://www.sunbird.org&quot; target=&quot;_blank&quot;&gt;Sunbird&lt;/a&gt;. I thought if we could automate the whole process of peer assessment.
 &lt;center&gt;
 	&lt;img src=&quot;https://group5hah.files.wordpress.com/2014/11/blog-resource-pic.jpg&quot; style=&quot;width:40%;&quot; alt=&quot;1:1 Peer Assessment&quot; /&gt;
 	&lt;br /&gt;&lt;caption&gt;1:1 Peer Assessment&lt;/caption&gt;
 &lt;/center&gt;
 &lt;br /&gt;
- But peer assessment takes into consideration multiple answers to a question: solely answered by the moderator for the assessment task so, the evaluating peers might read the sample answer provided by the moderator as an exemplar and rank their peer's responses on various attributes. 
+ But peer assessment takes into consideration multiple answers to a question: solely answered by the moderator for the assessment task so, the evaluating peers might read the sample answer provided by the moderator as an exemplar and rank their peer's responses on various attributes.
 &lt;br /&gt;
 Hence, to make the process wholly automated, the system would have to come up with its answer for the posed question, in natural language.
 &lt;br /&gt;
@@ -38,7 +38,7 @@ Hence, to make the process wholly automated, the system would have to come up wi
 &lt;br /&gt;
 It took relentless searches on the web to finally conclude with the decision of &lt;font style=&quot;font-size: 105%;color:black&quot;&gt; &lt;a href=&quot;https://glitch401.github.io/ncert-dataset/&quot;&gt; making a new dataset from scratch&lt;/a&gt;&lt;/font&gt;!
 &lt;br /&gt;
-Making it an even a grater convoluted problem was the fact that, all the guidance that I could get was the '&lt;font style=&quot;font-size: 110%;color:black&quot;&gt;Internet&lt;/font&gt;'. 
+Making it an even a grater convoluted problem was the fact that, all the guidance that I could get was the '&lt;font style=&quot;font-size: 110%;color:black&quot;&gt;Internet&lt;/font&gt;'.
 
 Eventually discovering various sources to solve the SQuAD. And various for Reading comprehension and text generations ranging from AllenNLP to GPT2.
 &lt;br /&gt;
@@ -317,50 +317,4 @@ Meanwhile, some among the many successful Answers from the system:
 &lt;figcaption class=&quot;caption&quot;&gt;East India Company-1&lt;/figcaption&gt;
 
 &lt;p&gt;Passed on by my father to collect unique coins, grew into an arcane hobby.
-All the coins collected has been collected from Pron shops or from jewellery shops, where they had been left off to be incenerated to metal values.&lt;/p&gt;</content><author><name>Indranil Biswas</name></author><category term="blog" /><category term="Hobby" /><summary type="html">East India Company-1</summary></entry><entry><title type="html">Chromatic Hands</title><link href="http://localhost:4000/paintings/" rel="alternate" type="text/html" title="Chromatic Hands" /><published>2018-06-30T13:10:00+05:30</published><updated>2018-06-30T13:10:00+05:30</updated><id>http://localhost:4000/paintings-</id><content type="html" xml:base="http://localhost:4000/paintings/">&lt;p&gt;&lt;img class=&quot;image&quot; src=&quot;../assets/images/art/13934620_1009977802449249_206226566459427307_n-01.jpeg&quot; alt=&quot;wall_painting&quot; /&gt;&lt;/p&gt;
-&lt;figcaption class=&quot;caption&quot;&gt;I meant 'a tree'&lt;/figcaption&gt;
-
-&lt;p&gt;Artwork Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in volup&lt;/p&gt;
-&lt;div class=&quot;side-by-side&quot;&gt;
-    &lt;div class=&quot;toleft&quot;&gt;
-        &lt;img class=&quot;image&quot; src=&quot;../assets/images/art/FB_IMG_1548050186726.jpg&quot; alt=&quot;Freehand_WaterPaintt&quot; /&gt;
-        &lt;figcaption class=&quot;caption&quot;&gt;Freehand WaterPaint&lt;/figcaption&gt;
-    &lt;/div&gt;
-
-    &lt;div class=&quot;toright&quot;&gt;
-        &lt;p&gt;Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.&lt;/p&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class=&quot;side-by-side&quot;&gt;
-    &lt;div class=&quot;toleft&quot;&gt;
-        &lt;img class=&quot;image&quot; src=&quot;../assets/images/art/IMG_20181021_181919-01.jpeg&quot; alt=&quot;Freehand_WaterPaintt&quot; /&gt;
-        &lt;figcaption class=&quot;caption&quot;&gt;Freehand WaterPaint&lt;/figcaption&gt;
-    &lt;/div&gt;
-
-    &lt;div class=&quot;toright&quot;&gt;
-        &lt;img class=&quot;image&quot; src=&quot;../assets/images/art/52592528_835029016832093_440943238350635008_o.jpg&quot; alt=&quot;Freehand_WaterPaintt&quot; /&gt;
-        &lt;figcaption class=&quot;caption&quot;&gt;Freehand WaterPaint&lt;/figcaption&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-&lt;div class=&quot;side-by-side&quot;&gt;
-    &lt;div class=&quot;toleft&quot;&gt;
-         &lt;p&gt;Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.&lt;/p&gt;
-    &lt;/div&gt;
-
-    &lt;div class=&quot;toright&quot;&gt;
-        &lt;img class=&quot;image&quot; src=&quot;../assets/images/art/FB_IMG_1548050195147.jpg&quot; alt=&quot;Freehand_WaterPaintt&quot; /&gt;
-        &lt;figcaption class=&quot;caption&quot;&gt;Freehand WaterPaint&lt;/figcaption&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;div class=&quot;side-by-side&quot;&gt;
-    &lt;div class=&quot;toleft&quot;&gt;
-         &lt;img class=&quot;image&quot; src=&quot;../assets/images/art/51874687_830857067249288_2438246929574920192_o.jpg&quot; alt=&quot;Freehand_WaterPaintt&quot; /&gt;
-        &lt;figcaption class=&quot;caption&quot;&gt;Freehand WaterPaint&lt;/figcaption&gt;
-    &lt;/div&gt;
-
-    &lt;div class=&quot;toright&quot;&gt;
-        &lt;img class=&quot;image&quot; src=&quot;../assets/images/art/IMG_20181021_181803-02.jpeg&quot; alt=&quot;Freehand_WaterPaintt&quot; /&gt;
-        &lt;figcaption class=&quot;caption&quot;&gt;Freehand WaterPaint&lt;/figcaption&gt;
-    &lt;/div&gt;
-&lt;/div&gt;</content><author><name>Indranil Biswas</name></author><category term="blog" /><category term="Hobby" /><category term="Art" /><summary type="html">I meant 'a tree'</summary></entry></feed>
+All the coins collected has been collected from Pron shops or from jewellery shops, where they had been left off to be incenerated to metal values.&lt;/p&gt;</content><author><name>Indranil Biswas</name></author><category term="blog" /><category term="Hobby" /><summary type="html">East India Company-1</summary></entry></feed>

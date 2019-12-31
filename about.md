@@ -2,63 +2,47 @@
 title: About
 layout: page
 ---
-![Profile Image]({{ site.url }}/{{ site.picture }})
+<!-- ![Profile Image]({{ site.url }}/{{ site.picture }}) -->
 
-Greetings!
-<p>I am currently a Computer Science Undergrad, in third academic year of college.<br>
-There are a couple of things to know about me, but even my parents don't completely know me.
-<br>Here are a few things:
-<ol>
-	<li>Machine Learning and its paradigm, is what interests me, as part of my academics and interests. <br>I know it is a buzz word, these days and the general crowd is using it, comparable to <i>Supreme</i>(I don't mean to criticize). My interest in this section of STEM is due to; its potential to possibly replace almost all of the STEM applications and studies, only leaving behind the Cognition(period); The flakes igniting my desire to peruse machine learning and its paradigm was the broadcasting of Alphago and OpenAI's Dota 2 bot and the dexterity experiment, to name a few.
-</li>
-<li>I am currently working towards publishing research paper  in the domain of Personalized education, which will be detailed after successful publication.</li>
-<li>I am also trying to dig into research for Open AI's Request for Research 2.0, with the goal of 'Automated Solutions of Olympiad Inequality Problems'</li>
-<li>Open Source has been a huge driver for this century and has benefited my understanding of computer science and its applications, I am trying my best to be a part of the communities making useful products free for public usage. I am eagerly waiting for the release of selected student's list of Google Summer of Code 2019, on May 7th.</li>
-</ol>
-</p>
+<center>
+    <font size="4">
+        <p>
+            A <strong>fast-learner</strong>, an analytical <strong>problem solver</strong> <br>comfortable with a variety of languages and paradigms.<br>
+            Experienced in research as well as pragmatic implementations.<br><br>
 
+             Will Graduate from <strong><a href="https://www.nita.ac.in/">National Institute of Technology- Agartala</a></strong> by <strong>2020</strong> with a <br><strong>Bachelor of Technology</strong> degree in <strong>Computer Science & Engineering</strong>.<br>
 
-<h3>Mainstream Conseptual Understandings</h3>
-<ul class="skill-list">
-<li>Machine Learning</li>
-<li>Deep Learning</li>
-<li>Image Processing</li>
-<li>Natural Language Processing</li>
-<li>Distributed Databases</li>
-<li>Particle Physics</li>
-</ul>
+            <br>
+            <!--Currently working at <strong><a href="https://www.numadic.com">Numadic</a></strong>.
+            <br>
+            <br>-->
+        </p>
+         <p>
+            Research interests lie in the domain of <strong>Deep Learning</strong>, especially with its potent applications in <strong> Natural Language Processing </strong> .<br>
 
-<h3>Familiar Frameworks/Softwares</h3>
-<ul class="skill-list">
-<li>Tensorflow</li>
-<li>Keras</li>
-<li>Pytorch</li>
-<li>OpenCV</li>
-<li>MongoDB</li>
-<li>Apache Cassandra</li>
-<li>AWS</li>
-<li>ROOT</li>
-<li>Android</li>
-</ul>
-
-<h3>Languages/ Markdowns</h3>
-<ul class="skill-list">
-	<li>Python</li>
-	<li>C, C++</li>
-	<li>Java</li>
-	<li>Go</li>
-	<li>CSS Frameworks (Bootstrap, Foundation)</li>
-	<li>Javascript (Design Patterns, Testes)</li>
-	<li>NodeJS</li>
-	<li>AngularJS - ReactJS</li>
-	<li>Git</li>
-	<li>PHP</li>
-</ul>
-
-<h2>Projects</h2>
-
-<ul>
-	<li><a href="https://github.com/">Lorem Lorem</a></li>
-	<li><a href="https://github.com/">Ipsum Dolor</a></li>
-	<li><a href="https://github.com/">Dolor Lorem</a></li>
-</ul>
+            <br>
+        </p>
+    </font>
+    <br>
+    <font size="3.5">
+            <b><i>"If we knew what it was we were doing, it would not be called research, would it?"
+            <br>
+            -Albert Einstein</i></b>
+            <br>
+            <br>
+            <br>
+    </font>
+    <font size="3.5">
+            <b><i>"If you are not doing what you love, you are wasting your time"
+            <br>
+            -Billy Joel</i></b>
+            <br>
+            <br>
+            <br>
+    </font>
+    <font size="4">
+        <p>
+            Apart from my ardor for research, I am into trakking, paintings and photography as my pastimes.
+        </p>
+    </font>
+</center>

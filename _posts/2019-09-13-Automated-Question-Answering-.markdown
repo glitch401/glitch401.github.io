@@ -9,7 +9,6 @@ tag:
 - NLP
 category: project
 author: Indranil Biswas
-summary: "Part 1 of a step by step non-coder's guide to setting up a personal site on Github"
 ---
 <style>
 p::first-letter {
@@ -19,14 +18,14 @@ p::first-letter {
 </style>
 <center><img class="image" src="../assets/images/aqa.jpeg"  style="width:50%;" alt="Automated QnA"></center>
 <p>
-While working as a	
+While working as a
 <a href="https://glitch401.github.io/Ekalavya-Inrern-IITB/" target="_blank">research intern at IIT Bombay</a>, on Peer Assessment for <a href="https://www.sunbird.org" target="_blank">Sunbird</a>. I thought if we could automate the whole process of peer assessment.
 <center>
 	<img src="https://group5hah.files.wordpress.com/2014/11/blog-resource-pic.jpg" style="width:40%;" alt="1:1 Peer Assessment">
 	<br><caption>1:1 Peer Assessment</caption>
 </center>
 <br>
- But peer assessment takes into consideration multiple answers to a question: solely answered by the moderator for the assessment task so, the evaluating peers might read the sample answer provided by the moderator as an exemplar and rank their peer's responses on various attributes. 
+ But peer assessment takes into consideration multiple answers to a question: solely answered by the moderator for the assessment task so, the evaluating peers might read the sample answer provided by the moderator as an exemplar and rank their peer's responses on various attributes.
 <br>
 Hence, to make the process wholly automated, the system would have to come up with its answer for the posed question, in natural language.
 <br>
@@ -35,7 +34,7 @@ Hence, to make the process wholly automated, the system would have to come up wi
 <br>
 It took relentless searches on the web to finally conclude with the decision of <font style='font-size: 105%;color:black'> <a href="https://glitch401.github.io/ncert-dataset/"> making a new dataset from scratch</a></font>!
 <br>
-Making it an even a grater convoluted problem was the fact that, all the guidance that I could get was the '<font style='font-size: 110%;color:black'>Internet</font>'. 
+Making it an even a grater convoluted problem was the fact that, all the guidance that I could get was the '<font style='font-size: 110%;color:black'>Internet</font>'.
 
 Eventually discovering various sources to solve the SQuAD. And various for Reading comprehension and text generations ranging from AllenNLP to GPT2.
 <br>
