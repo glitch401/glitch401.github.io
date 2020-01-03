@@ -5,7 +5,7 @@ layout: post
 projects: true
 hidden: false
 tag:
-- Web Dev
+- Internship
 category: project
 author: Indranil Biswas
 ---

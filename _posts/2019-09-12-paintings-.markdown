@@ -4,7 +4,6 @@ date: 2018-06-30 13:10
 layout: post
 tag:
 - Hobby
-- Art
 category: blog
 author: Indranil Biswas
 ---

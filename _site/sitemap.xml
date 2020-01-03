@@ -49,7 +49,7 @@
 <lastmod>2019-02-15T10:10:00+05:30</lastmod>
 </url>
 <url>
-<loc>http://localhost:4000/travel-blog-1/</loc>
+<loc>http://localhost:4000/lineage-blog-1/</loc>
 <lastmod>2019-04-20T13:10:00+05:30</lastmod>
 </url>
 <url>
@@ -93,6 +93,9 @@
 </url>
 <url>
 <loc>http://localhost:4000/tags/Photography/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/tags/Hobby/</loc>
 </url>
 <url>
 <loc>http://localhost:4000/tags/Family/</loc>

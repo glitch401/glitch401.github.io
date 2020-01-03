@@ -7,7 +7,6 @@ hidden: false
 tag:
 - Research
 - Computer Vision
-- Android
 category: project
 author: Indranil Biswas
 ---

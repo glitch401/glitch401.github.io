@@ -2,11 +2,12 @@
 title: About
 layout: page
 ---
-<!-- ![Profile Image]({{ site.url }}/{{ site.picture }}) -->
+
 
 <center>
     <font size="4">
         <p>
+        <img class="image" src="../assets/images/profile2.jpg" alt="Abstract Me">
             A <strong>fast-learner</strong>, an analytical <strong>problem solver</strong> <br>comfortable with a variety of languages and paradigms.<br>
             Experienced in research as well as pragmatic implementations.<br><br>
 
@@ -42,7 +43,7 @@ layout: page
     </font>
     <font size="4">
         <p>
-            Apart from my ardor for research, I am into trakking, paintings and photography as my pastimes.
+            Apart from my ardor for research, I am into <a href="https://glitch401.github.io/tags/Travel/">trekking</a>, <a href="https://glitch401.github.io/paintings/">paintings</a> and <a href="https://glitch401.github.io/tags/Travel/">photography</a> as my pastimes.<br>Oh yes! Me and my Father have made a nice collection of <a href="https://glitch401.github.io/coin-collection/">antique and historical coins</a>.  
         </p>
     </font>
 </center>

@@ -5,7 +5,6 @@ layout: post
 projects: true
 hidden: false
 tag:
-- Android
 - Computer Vision
 - Research
 category: project

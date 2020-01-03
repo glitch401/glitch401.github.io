@@ -4,7 +4,6 @@ date: 2019-02-06 13:10
 layout: post
 tag:
 - Travel
-- Blog
 category: blog
 author: Indranil Biswas
 ---
