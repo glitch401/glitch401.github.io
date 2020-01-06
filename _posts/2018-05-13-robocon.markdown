@@ -6,7 +6,6 @@ projects: true
 hidden: false
 tag:
 - Robotics
-- Competition
 category: project
 author: Indranil Biswas
 ---
