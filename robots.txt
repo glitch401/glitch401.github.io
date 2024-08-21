@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://brittanychiang.com/sitemap-index.xml
-Host: https://brittanychiang.com
+Sitemap: https://glitch401.github.com/sitemap-index.xml
+Host: https://glitch401.github.com
