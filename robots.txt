@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://glitch401.github.com/sitemap-index.xml
-Host: https://glitch401.github.com
+Sitemap: https://glitch401.github.io/sitemap.xml
+Host: https://glitch401.github.io
