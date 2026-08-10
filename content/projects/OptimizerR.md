@@ -9,7 +9,7 @@ tech:
   - Qwen3-8B
   - Streamlit
   - LaTeX
-showInProjects: true
+showInProjects: false
 ---
 
 A local MLOps resume optimization tool using Qwen3-8B and LangGraph. The agent pipeline includes a 5-step state machine: gap analysis, content rewriting, LaTeX compilation, error reflection with automatic debugging, and PDF validation. Runs entirely on a single Linux GPU server with 8GB VRAM, keeping all data local and private.

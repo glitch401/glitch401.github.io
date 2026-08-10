@@ -9,7 +9,7 @@ tech:
   - Electron
   - Chrome Extension
   - ATS Optimization
-showInProjects: true
+showInProjects: false
 ---
 
 An autonomous AI agent that handles the entire job application process — from finding relevant postings to generating ATS-optimized resumes and cover letters, to automatically submitting applications. Features include smart filtering, company blacklist, iterative learning from user review, and a job tracker. Supports Indeed, ZipRecruiter, Glassdoor, and Dice.

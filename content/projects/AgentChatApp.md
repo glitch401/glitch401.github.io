@@ -8,7 +8,7 @@ tech:
   - LangGraph
   - Next.js
   - React
-showInProjects: true
+showInProjects: false
 ---
 
 A full-stack chat application built with TypeScript and LangGraph, featuring research and retrieval agents. The app provides a web-based chat interface for interacting with AI agents that can search the web, retrieve documents, and synthesize information across multiple turns of conversation. Built with a modular agent architecture supporting pluggable tools and multi-agent orchestration.

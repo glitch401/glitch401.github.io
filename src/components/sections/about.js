@@ -144,34 +144,32 @@ const About = () => {
         <StyledText>
           <div>
             <p>
-              Hello! I'm Indranil, a versatile data scientist with a knack for solving complex
-              problems through innovative data-driven solutions. My journey in the world of data
-              science began during my research at the{' '}
-              <a href="https://www.iitb.ac.in/">IIT Bombay</a> where I developed a deep fascination
-              for the power of data to transform real-world day-to-day problems.
+              Hello! I'm Indranil. I got into machine learning through graph theory: two years of
+              undergrad research at <a href="https://www.iitb.ac.in/">IIT Bombay</a> on community
+              detection and influence maximization, trying to make graph algorithms behave on
+              networks with millions of nodes.
             </p>
 
             <p>
-              Fast-forward to today, and I've had the privilege of working at diverse organizations,
-              from educational technology giants like <a href="https://byjus.com/">Byju's</a>,{' '}
-              <a href="https://g2.com/">G2.com</a>, and data-driven companies like{' '}
-              <a href="https://stylumia.ai/">Stylumia</a>. My experiences have ranged from
-              implementing cutting-edge graph neural networks for software marketplaces to
-              developing automated moderation systems using NLP techniques.
+              Since then I've done three fairly different tours in industry. At{' '}
+              <a href="https://stylumia.ai/">Stylumia</a> I forecast fashion trends from a million
+              product images. At <a href="https://byjus.com/">Byju's</a> I built the models that
+              recommended lessons to five million students. And at <a href="https://g2.com/">G2</a>{' '}
+              I spent two years on the marketplace's graph neural network recommenders and the NLP
+              pipelines that catch fraudulent reviews.
             </p>
 
             <p>
-              Currently, I'm pursuing my Master's in Computer Science at The University of Texas
-              Dallas, where I'm further honing my skills and exploring new frontiers in AI and
-              machine learning. My focus these days is on pushing the boundaries of what's possible
-              with graph neural networks, natural language processing, and recommender systems.
+              Right now I'm doing my Master's in Computer Science at UT Dallas. My thesis is on
+              responsible knowledge graph representations, which is a formal way of saying I care
+              about what graph models learn about people, and whether they should.
             </p>
 
             <p>
-              I'm also passionate about giving back to the community. As an open-source developer
-              for <a href="https://openclimatefix.org/">OpenClimateFix</a>, I've contributed to
-              refining data pipelines and implementing anomaly detection in GNN weather models,
-              aiming to make a positive impact on climate change mitigation efforts.
+              When coursework allows, I contribute to{' '}
+              <a href="https://openclimatefix.org/">OpenClimateFix</a>, an open-source group using
+              ML to forecast solar power. My patches live in their weather pipeline: data
+              validation, anomaly detection, and making the GNN models train faster.
             </p>
 
             <p>Here are a few technologies I've been working with recently:</p>

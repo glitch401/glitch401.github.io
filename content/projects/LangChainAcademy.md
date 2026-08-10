@@ -9,7 +9,7 @@ tech:
   - MCP
   - Python
   - Jupyter
-showInProjects: true
+showInProjects: false
 ---
 
 Completed LangChain Academy's comprehensive course covering agent creation, advanced multi-agent systems, and production-ready agent deployment. Includes projects building a Personal Chef agent, Wedding Planner with MCP integration, and an Email Assistant with human-in-the-loop capabilities. Explores Model Context Protocol, context management, and dynamic agent architectures.

@@ -59,19 +59,19 @@ const Hero = () => {
     return () => clearTimeout(timeout);
   }, []);
 
-  const one = <h1>Heyyooo, I am</h1>;
+  const one = <h1>Hi, my name is</h1>;
   const two = <h2 className="big-heading">Indranil Biswas.</h2>;
-  const three = <h3 className="big-heading">I turn data into decisions.</h3>;
+  const three = <h3 className="big-heading">I ship ML built on graphs and language models.</h3>;
   const four = (
     <>
       <p>
-        I'm a curious data scientist with 3+ years of hands-on experience in building data products
-        that matter. My journey continues as I delve into my thesis on responsible knowledge graph
-        representations, pushing the boundaries of ethical AI at{' '}
+        I'm a data scientist with three years in industry, most of it spent on graph neural networks
+        and NLP: recommenders for a software marketplace, moderation pipelines that catch fake
+        reviews, learning models for five million students. These days I'm at{' '}
         <a href="https://cs.utdallas.edu/" target="_blank" rel="noreferrer">
-          EECS@UTD
+          UT Dallas
         </a>
-        .
+        , writing a Master's thesis on responsible knowledge graph representations.
       </p>
     </>
   );
