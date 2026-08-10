@@ -31,10 +31,11 @@ jobs:
       - name: Build
         run: npx gatsby build
 
+      # No force_orphan: keeping master's commit history preserves every past
+      # deploy, which is how the pre-2026 site assets were recovered.
       - name: Publish to master (GitHub Pages branch)
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: master
           publish_dir: ./public
-          force_orphan: true
