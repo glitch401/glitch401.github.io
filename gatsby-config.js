@@ -29,7 +29,9 @@ module.exports = {
         icon: 'src/images/logo.png',
       },
     },
-    `gatsby-plugin-offline`,
+    // gatsby-plugin-offline was removed: its service worker kept serving stale
+    // deploys to returning visitors. This plugin unregisters the old worker.
+    `gatsby-plugin-remove-serviceworker`,
     {
       resolve: `gatsby-source-filesystem`,
       options: {
