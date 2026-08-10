@@ -7,8 +7,8 @@ range: 'August 2020 - May 2021'
 url: 'https://stylumia.ai/'
 ---
 
-- Developed computer vision models for fashion trend forecasting using CNNs and transfer learning, analyzing 1M+ product images to predict upcoming style trends with 78% accuracy
-- Built automated web scraping pipelines using Python and Selenium to collect fashion product data from 20+ e-commerce sites, creating a dataset of 500K+ product images and metadata
-- Implemented image similarity search using deep metric learning and FAISS, enabling real-time visual search across the product catalog with sub-100ms query latency
-- Created data visualization dashboards using Plotly and Dash to communicate trend insights to fashion buyers and merchandising teams
-- Researched and prototyped GAN-based approaches for synthetic fashion image generation to augment training data
+- Built computer vision models for fashion trend forecasting on 1M+ product images, predicting upcoming styles with 78% accuracy
+- Scraped 20+ e-commerce sites (Python, Selenium) into a 500K-image dataset with metadata
+- Implemented visual similarity search with deep metric learning and FAISS. Queries come back in under 100ms
+- Built Plotly and Dash dashboards to walk fashion buyers through the trend calls
+- Prototyped GAN-generated synthetic fashion images to stretch the training data further

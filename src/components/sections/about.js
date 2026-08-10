@@ -144,32 +144,29 @@ const About = () => {
         <StyledText>
           <div>
             <p>
-              Hello! I'm Indranil. I got into machine learning through graph theory: two years of
-              undergrad research at <a href="https://www.iitb.ac.in/">IIT Bombay</a> on community
-              detection and influence maximization, trying to make graph algorithms behave on
-              networks with millions of nodes.
+              Hello! I'm Indranil. My first taste of machine learning was research at{' '}
+              <a href="https://www.iitb.ac.in/">IIT Bombay</a>, teaching algorithms to find
+              communities in social networks. I stayed two years and never really left graphs.
             </p>
 
             <p>
-              Since then I've done three fairly different tours in industry. At{' '}
-              <a href="https://stylumia.ai/">Stylumia</a> I forecast fashion trends from a million
-              product images. At <a href="https://byjus.com/">Byju's</a> I built the models that
-              recommended lessons to five million students. And at <a href="https://g2.com/">G2</a>{' '}
-              I spent two years on the marketplace's graph neural network recommenders and the NLP
-              pipelines that catch fraudulent reviews.
+              Industry came next. <a href="https://stylumia.ai/">Stylumia</a> had me forecasting
+              fashion trends from product images. <a href="https://byjus.com/">Byju's</a> had me
+              recommending lessons to a few million students. <a href="https://g2.com/">G2</a> kept
+              me the longest, two years of graph neural network recommenders and pipelines that
+              catch fake software reviews.
             </p>
 
             <p>
-              Right now I'm doing my Master's in Computer Science at UT Dallas. My thesis is on
-              responsible knowledge graph representations, which is a formal way of saying I care
-              about what graph models learn about people, and whether they should.
+              Now I'm back in school, doing my Master's at UT Dallas. The thesis is about
+              responsible knowledge graph representations. Graphs are very good at remembering
+              things about people; somebody should check what.
             </p>
 
             <p>
-              When coursework allows, I contribute to{' '}
-              <a href="https://openclimatefix.org/">OpenClimateFix</a>, an open-source group using
-              ML to forecast solar power. My patches live in their weather pipeline: data
-              validation, anomaly detection, and making the GNN models train faster.
+              On the side I contribute to <a href="https://openclimatefix.org/">OpenClimateFix</a>,
+              an open-source group forecasting solar power. My patches are mostly plumbing, but it's
+              plumbing that helps grid operators burn less gas.
             </p>
 
             <p>Here are a few technologies I've been working with recently:</p>

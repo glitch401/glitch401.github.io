@@ -13,6 +13,6 @@ tech:
   - Apache Kafka
 ---
 
-OpenClimateFix builds open-source ML for solar power forecasting, and better forecasts mean grid operators burn less gas covering for cloudy afternoons. I contribute to the weather side of that.
+Solar forecasts decide how much gas a grid operator burns as backup. OpenClimateFix makes those forecasts better, in the open, and I work on their weather models.
 
-My patches live in three places: validation pipelines in Airflow that keep bad sensor data out of training, anomaly detection that flags suspicious readings before they poison a model, and distributed-training work that makes the GNN forecasting models cheaper to iterate on.
+Validation pipelines in Airflow so bad sensor data never reaches training. Anomaly detection for readings that look wrong. Distributed-training tweaks so the GNNs are cheaper to retrain. Unglamorous, useful.

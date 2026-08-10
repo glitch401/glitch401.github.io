@@ -65,13 +65,12 @@ const Hero = () => {
   const four = (
     <>
       <p>
-        I'm a data scientist with three years in industry, most of it spent on graph neural networks
-        and NLP: recommenders for a software marketplace, moderation pipelines that catch fake
-        reviews, learning models for five million students. These days I'm at{' '}
+        I'm a data scientist. I spent three years in industry building recommenders and catching
+        fake reviews, and now I'm at{' '}
         <a href="https://cs.utdallas.edu/" target="_blank" rel="noreferrer">
           UT Dallas
-        </a>
-        , writing a Master's thesis on responsible knowledge graph representations.
+        </a>{' '}
+        writing a Master's thesis on what knowledge graphs quietly learn about people.
       </p>
     </>
   );

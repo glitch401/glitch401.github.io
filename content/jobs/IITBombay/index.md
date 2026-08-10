@@ -7,8 +7,8 @@ range: 'August 2019 - June 2021'
 url: 'https://www.iitb.ac.in/'
 ---
 
-- Conducted research on graph-based representations for social network analysis under the guidance of Prof. Soumya Dey, focusing on community detection and influence maximization
-- Developed novel graph embedding techniques combining spectral methods with deep learning, achieving state-of-the-art results on benchmark datasets for node classification tasks
-- Published and presented research findings at national conferences, including work on scalable graph neural network architectures for large-scale networks
-- Built simulation frameworks using NetworkX and PyTorch Geometric to evaluate graph algorithms on synthetic and real-world networks with millions of nodes
-- Collaborated with interdisciplinary teams including social scientists and domain experts to apply graph-based methods to real-world problems in urban planning and transportation
+- Researched graph representations for social networks with Prof. Soumya Dey: community detection and influence maximization
+- Developed graph embeddings that mix spectral methods with deep learning, hitting state-of-the-art on node classification benchmarks
+- Presented the work at national conferences, including a piece on scaling GNN architectures to large networks
+- Built simulation frameworks (NetworkX, PyTorch Geometric) to test algorithms on networks with millions of nodes
+- Teamed up with social scientists and urban planners to point the same methods at transportation problems
