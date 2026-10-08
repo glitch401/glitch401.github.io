@@ -1,0 +1,26 @@
+---
+interface Item { label: string; from: number; to: number }
+interface Props { title: string; fromLabel: string; toLabel: string; items: Item[]; unit?: string; caption?: string }
+const { title, fromLabel, toLabel, items, unit = '', caption } = Astro.props;
+const max = Math.max(...items.flatMap((i) => [i.from, i.to]));
+const x = (v: number) => 180 + (v / max) * 270;
+const H = 20 + items.length * 46;
+const desc = items.map((i) => `${i.label}: ${i.from}${unit} ${fromLabel}, ${i.to}${unit} ${toLabel}`).join('. ');
+---
+<figure class="fig dumbbell">
+  <div class="fig-title">{title}</div>
+  <svg viewBox={`0 0 480 ${H}`} role="img" aria-label={title}>
+    <desc>{desc}</desc>
+    {items.map((i, n) => (
+      <g transform={`translate(0 ${26 + n * 46})`}>
+        <text x="165" y="4" text-anchor="end" class="lab">{i.label}</text>
+        <line x1={x(i.from)} y1="0" x2={x(i.to)} y2="0" />
+        <circle cx={x(i.from)} cy="0" r="5" class="a" /><circle cx={x(i.to)} cy="0" r="5" class="b" />
+        <text x={x(i.from)} y="-9" text-anchor="middle" class="val">{i.from}{unit}</text>
+        <text x={x(i.to)} y="19" text-anchor="middle" class="val">{i.to}{unit}</text>
+      </g>
+    ))}
+  </svg>
+  <div class="legend"><span><i class="dot a"></i> {fromLabel}</span><span><i class="dot b"></i> {toLabel}</span></div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

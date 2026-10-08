@@ -21,21 +21,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: yarn
+          cache: npm
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile --network-timeout 300000
+      - run: npm ci
 
-      # Node 14 (OpenSSL 1.1) doesn't have --openssl-legacy-provider, so call
-      # gatsby directly instead of `yarn build`, whose NODE_OPTIONS assume Node 17+.
-      - name: Build
-        run: npx gatsby build
+      # Builds Astro into dist/ and indexes it with Pagefind.
+      - run: npm run build
 
-      # No force_orphan: keeping master's commit history preserves every past
-      # deploy, which is how the pre-2026 site assets were recovered.
+      # No force_orphan: keeping master's history preserves every past deploy.
       - name: Publish to master (GitHub Pages branch)
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: master
-          publish_dir: ./public
+          publish_dir: ./dist

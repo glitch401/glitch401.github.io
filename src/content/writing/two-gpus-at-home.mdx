@@ -1,0 +1,89 @@
+---
+title: 'What Two GPUs at Home Taught Me'
+summary: 'An idle GPU, a power supply that was too small, and an engine that was not the problem.'
+date: 2026-08-10
+tags: [infra, local-first, llm]
+---
+
+import BarChart from '../../components/BarChart.astro';
+import Flow from '../../components/Flow.astro';
+import Dumbbell from '../../components/Dumbbell.astro';
+import Waffle from '../../components/Waffle.astro';
+import StatStrip from '../../components/StatStrip.astro';
+import Callout from '../../components/Callout.astro';
+import Tldr from '../../components/Tldr.astro';
+
+<Tldr>
+- The GPU sat idle about 60% of the time. The biggest cause was a pre-processing stage that waited 53 seconds per item and returned nothing.
+- Two GPUs on an 850 W supply lost power under load. Capping the bigger card from 390 W to 300 W fixed it for about 5% of throughput.
+- A 9B model went from 16.8 to 69.1 tokens per second after I moved it from Ollama to llama.cpp. The cause was one layer left on the CPU, and with the whole model on the GPU the engines were close.
+</Tldr>
+
+I have run local language-model calls on a home server since summer 2025. It has two consumer GPUs: an 8 GB card and a 24 GB card. Three problems took most of my time, and none was the one I expected.
+
+## My GPU was idle 60% of the time
+
+The bottleneck in my pipeline was supposed to be the GPU. Work piled up faster than the model could process it, so I assumed the card was always busy and the answer was a bigger one.
+
+I sampled utilisation once a second for two five-minute windows. The GPU was near idle about 60% of the time.
+
+<Waffle title="Share of wall-clock time" total={100} highlight={60} highlightLabel="GPU idle" restLabel="GPU busy" caption="Two five-minute windows, sampled once a second. Each square is one percent." />
+
+The largest single cause was a pre-processing stage that made five external lookups in a row with a hard-coded 3 second sleep between them. Across every item it returned "no results" and took about 53 seconds. That is roughly 2.1 GPU-hours a day spent waiting for nothing.
+
+<Flow title="One item, before the model starts" steps={['Lookup 1, then sleep 3 s','Lookup 2, then sleep 3 s','Lookup 3, then sleep 3 s','Lookup 4, then sleep 3 s','Lookup 5, result: none']} caption="About 53 seconds per item, with nothing to show for it." />
+
+My first instinct was to shorten the sleep. I replayed the same queries at 3000, 300, 30 and 0 milliseconds. All four returned zero results, so the delay was not the problem. Connections from my own network to specific external hosts were timing out, so the lookups failed slowly. Nothing was rate-limiting them.
+
+| Delay between lookups | Results |
+|---|---|
+| 3000 ms | 0 |
+| 300 ms | 0 |
+| 30 ms | 0 |
+| 0 ms | 0 |
+
+The fix direction was to run the lookups concurrently, drop the sleeps, and add a circuit breaker so a dead service stops costing a minute per item.
+
+Another regression made two thirds of GPU time produce nothing. A formatting bug in the model output broke a downstream build step: failures jumped from about 1% to 53 to 72%, almost all of them the same missing brace. A repair loop then re-called the model 814 times in a day to patch it.
+
+## The machine that lost power
+
+I added the second GPU. The same week, my pipeline started going quiet for hours at a time.
+
+<StatStrip items={[{value:'850 W',label:'power supply rating'},{value:'810 W',label:'budget before the fix'},{value:'-5%',label:'throughput cost of the fix'}]} />
+
+At first it looked like the network. The box stopped responding, the dashboard stalled, and later it was fine. It was losing power. When I listed the boots, there were four in a single day, none of them with a clean shutdown marker. There were no GPU error codes and no thermal events. It went dark and came back.
+
+The power supply was 850 W. The two GPUs were capped at a combined 590 W, and the CPU and the rest of the board added roughly 220 W. That is 810 W against an 850 W supply, before the transient spikes a GPU makes when it ramps up. Two cards loading a model at once was enough to trip it.
+
+<BarChart title="Power budget (watts)" unit=" W" items={[
+  {label:'Supply rating',value:850},
+  {label:'Before: 590 GPU + 220 rest',value:810,accent:true},
+  {label:'After: 500 GPU + 220 rest',value:720},
+]} caption="The first two figures are from my notes. The last is derived from them: the bigger card's cap dropped by 90 W." />
+
+The fix was to lower the bigger card's cap from 390 W to 300 W. It cost about 5% of throughput. It did not stick at first, because a service unit restored the old value on every boot, and I had to change that too.
+
+<Callout label="First check">List the boots before you read any application logs. Four boots with no shutdown marker in one day mean the machine lost power.</Callout>
+
+Even once the power was stable, model loading was wasteful. Ollama split a 27B model across both cards even though it fits on one, which used 2.4 GB of extra memory. After I pinned it to a single card, two resident models kept evicting each other: 23 evictions in 20 minutes. A wrong GPU ID once sent a 17 GB model at the 8 GB card and turned a 0.9 second reply into 109 seconds.
+
+## Same model, four times slower
+
+That wasteful loading made me benchmark Ollama against llama.cpp and vLLM, mostly out of suspicion. A 9B model on the 8 GB card ran at 16.8 tokens per second on Ollama and 69.1 on llama.cpp. That is 4.1 times faster for the same weights on the same hardware.
+
+<Dumbbell title="Tokens per second, Ollama to llama.cpp" fromLabel="Ollama" toLabel="llama.cpp" items={[{label:'9B on the 8 GB card',from:16.8,to:69.1},{label:'27B on the 24 GB card',from:33.5,to:31.1}]} caption="One layer of 34 sat on the CPU under Ollama. With the whole model on the GPU, the engines are close." />
+
+The cause was placement. Ollama had decided the model would not quite fit and left one layer on the CPU (33 of 34 layers on the GPU). One layer off the GPU is enough to drag everything to CPU-bound speed. llama.cpp did what I told it to and put all of them on the GPU.
+
+The control run confirms this. On a 27B model that both engines fit fully on the 24 GB card, they were close: 33.5 against 31.1 tokens per second. Prompt processing was a dead heat too (1,981 against 2,105 tokens per second).
+
+vLLM is excellent, but not for this. It was about three times slower on the 27B (11.4 tokens per second), and it could not load a model onto the 8 GB card at all because of its fixed memory overhead. With four concurrent requests all three engines landed within a few tokens per second of each other, so its usual batching advantage never appeared. My workload is one long request at a time, which is not what vLLM is built for.
+
+I also got a few predictions wrong. I expected dropping parallel slots from 2 to 1 to help, and it measured exactly zero. I "discovered" that KV-cache quantization would save memory, and it had been on for weeks. An Ollama upgrade by itself had already cut resident memory by about 40%.
+
+## What I took from it
+
+- Watch a resource for ten minutes before you scale it. I almost bought hardware to solve a software problem.
+- When a system goes quiet, look at the machine before the software. A one-line check of the boot history would have saved me a day.
+- If you compare inference engines, make sure you are not really comparing their default offloading heuristics. I switched to llama.cpp for control over placement, which was the thing I was missing.

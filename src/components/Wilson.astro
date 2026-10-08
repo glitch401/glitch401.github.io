@@ -1,0 +1,39 @@
+---
+interface Props { n?: number; k?: number }
+const { n = 5, k = 5 } = Astro.props;
+const wilson = (k: number, n: number, z = 1.96) => {
+  if (n === 0) return 0;
+  const p = k / n, d = 1 + (z * z) / n;
+  return (p + (z * z) / (2 * n) - z * Math.sqrt((p * (1 - p)) / n + (z * z) / (4 * n * n))) / d;
+};
+const start = wilson(k, n);
+---
+<figure class="fig wilson">
+  <div class="fig-title">Try it: Wilson lower bound (95%)</div>
+  <label>Replays <input type="range" name="n" min="1" max="50" value={n} /> <output data-n>{n}</output></label>
+  <label>Reproduced <input type="range" name="k" min="0" max={n} value={k} /> <output data-k>{k}</output></label>
+  <div class="result">Lower bound: <strong data-out>{start.toFixed(2)}</strong></div>
+  <figcaption>Drag the sliders. A perfect score on a few replays still earns a low bound, and the bound only approaches 1 as replays pile up.</figcaption>
+</figure>
+<script>
+  const wilson = (k: number, n: number, z = 1.96) => {
+    if (n === 0) return 0;
+    const p = k / n, d = 1 + (z * z) / n;
+    return (p + (z * z) / (2 * n) - z * Math.sqrt((p * (1 - p)) / n + (z * z) / (4 * n * n))) / d;
+  };
+  document.querySelectorAll<HTMLElement>('figure.wilson').forEach((fig) => {
+    const nEl = fig.querySelector<HTMLInputElement>('input[name=n]')!;
+    const kEl = fig.querySelector<HTMLInputElement>('input[name=k]')!;
+    const update = () => {
+      const n = +nEl.value;
+      kEl.max = String(n);
+      if (+kEl.value > n) kEl.value = String(n);
+      const k = +kEl.value;
+      fig.querySelector('[data-n]')!.textContent = String(n);
+      fig.querySelector('[data-k]')!.textContent = String(k);
+      fig.querySelector('[data-out]')!.textContent = wilson(k, n).toFixed(2);
+    };
+    nEl.addEventListener('input', update);
+    kEl.addEventListener('input', update);
+  });
+</script>

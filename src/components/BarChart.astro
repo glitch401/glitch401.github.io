@@ -1,0 +1,21 @@
+---
+interface Item { label: string; value: number; note?: string; accent?: boolean }
+interface Props { title: string; items: Item[]; unit?: string; caption?: string; max?: number }
+const { title, items, unit = '', caption, max } = Astro.props;
+const top = max ?? Math.max(...items.map((i) => i.value), 1);
+const fmt = (v: number) => `${v.toLocaleString('en-US')}${unit}`;
+---
+<figure class="fig chart">
+  <div class="fig-title">{title}</div>
+  <ul class="bars" role="list">
+    {items.map((i) => (
+      <li>
+        <span class="bar-label">{i.label}</span>
+        <span class="bar-track"><span class:list={['bar', { accent: i.accent }]} style={`width:${Math.max((i.value / top) * 100, 0.8)}%`}></span></span>
+        <span class="bar-val">{fmt(i.value)}</span>
+        {i.note && <span class="bar-note">{i.note}</span>}
+      </li>
+    ))}
+  </ul>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

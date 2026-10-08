@@ -1,0 +1,65 @@
+---
+title: 'Two Stores, One Truth'
+summary: 'Four of my five worst pipeline bugs were the same mistake: keeping state in a database and in files.'
+date: 2026-07-30
+favourite: true
+tags: [engineering, local-first, agents]
+---
+
+import BarChart from '../../components/BarChart.astro';
+import Flow from '../../components/Flow.astro';
+import Compare from '../../components/Compare.astro';
+import Callout from '../../components/Callout.astro';
+import Sequence from '../../components/Sequence.astro';
+import StatStrip from '../../components/StatStrip.astro';
+import Tldr from '../../components/Tldr.astro';
+import Term from '../../components/Term.astro';
+import Waffle from '../../components/Waffle.astro';
+import Slope from '../../components/Slope.astro';
+import Wilson from '../../components/Wilson.astro';
+
+<Tldr>
+- Four of my five worst bugs were one mistake: state kept in a database and in files.
+- Fix: every column has one owner, and reconcile before optimising.
+- Making the <Term def="Safe to run more than once: the second run changes nothing.">idempotent</Term> insert alone took the event table from 216,798 rows to 31,556.
+</Tldr>
+
+<StatStrip items={[{value:'91.7%',label:'file paths in the database pointing at missing files'},{value:'169 to 75 MB',label:'database size after the fixes'},{value:'156 to 36 s',label:'sync time'}]} />
+
+A long-running pipeline of mine keeps its state in two places: a SQLite database and daily JSON files. That was a convenience at the start. Files were easy to write from the ingest step, and the database was easy to query from the dashboard.
+
+When I audited the system, four of the five worst bugs were the same bug.
+
+<Sequence title="How one record went wrong" actors={['Ingest','Files','Sync','Database','Retention']} messages={[{from:0,to:1,text:'write record'},{from:2,to:1,text:'read record'},{from:2,to:3,text:'copy it, status skipped'},{from:4,to:1,text:'read the wrong store'},{from:4,to:1,text:'trash the output'}]} caption="The database never learns that the output is gone, so it keeps pointing at a missing file." />
+
+<Flow title="Where the two stores drift" steps={['Ingest writes daily JSON files','A sync copies them into SQLite','Retention job reads one of them','Dashboard reads the other']} caption="Every arrow between stores is a place for them to disagree." />
+
+## What went wrong
+
+- Nothing synced the JSON files into the database. One day had 165 records in the files and 2 in the database.
+- When I added a sync, it refused to carry the status field. That stranded 708 records that already had a finished output.
+- A retention job read the wrong store and moved finished outputs to the trash. 7,324 of 9,399 rows then pointed at a file that no longer existed.
+- A read handler was modifying an in-memory array as a side effect. The dashboard showed 18 stale items while the database held none.
+
+None of these is clever. Each one is a reasonable bit of code that assumed the other store agreed with it.
+
+## It kept getting worse until I measured
+
+Later I found that 91.7% of the file paths in the database pointed at files that were gone. The list endpoint took about 1.4 seconds, and I had been ready to optimise it. It was slow because it was defending itself against a database that lied to it.
+
+The first reconcile pass cleared 823 stale source paths and 210 stale output paths. After that the endpoint did not need optimising.
+
+A related bug: the event log had 216,798 rows for 6,965 items. One item was duplicated 154 times, because every sync replayed history. Making the insert idempotent got it to 31,556 rows, but a second sync still added 3,454. The fix was to stop replaying at all. The database went from 169 MB to 75 MB and a sync from 156 seconds to 36.
+
+<BarChart title="Event rows for 6,965 items" items={[
+  {label:'Before fixes',value:216798},
+  {label:'After idempotent insert',value:31556,accent:true},
+]} caption="A second sync still added 3,454 rows, so I removed the replay entirely." />
+
+## What I do now
+
+1. Every column has one owner. Either the machine writes it or a human does, never both.
+2. Reconcile before you optimise. If a query is slow, first check that the data it reads is true.
+3. Make syncs idempotent, then make them smaller. Idempotent is not the same as cheap.
+
+If you have a "temporary" second store in a project, this is your sign to pick one.

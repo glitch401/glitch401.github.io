@@ -1,0 +1,39 @@
+---
+interface Series { label: string; values: number[]; accent?: boolean }
+interface Mark { at: number; label: string }
+interface Props { title: string; series: Series[]; xLabel: string; yLabel: string; marks?: Mark[]; zero?: boolean; caption?: string }
+const { title, series, xLabel, yLabel, marks = [], zero = false, caption } = Astro.props;
+
+const W = 560, H = 240, L = 48, R = 96, T = 14, B = 34;
+const n = Math.max(...series.map((s) => s.values.length));
+const all = series.flatMap((s) => s.values).concat(zero ? [0] : []);
+const lo = Math.min(...all), hi = Math.max(...all);
+const x = (i: number) => L + (i / (n - 1 || 1)) * (W - L - R);
+const y = (v: number) => H - B - ((v - lo) / (hi - lo || 1)) * (H - T - B);
+const pts = (vs: number[]) => vs.map((v, i) => `${x(i)},${y(v)}`).join(' ');
+const ticks = [lo, Math.round((lo + hi) / 2), hi];
+const fmt = (v: number) => v.toLocaleString('en-US');
+const desc = series.map((s) => `${s.label}: ${s.values.length} points from ${fmt(s.values[0])} to ${fmt(s.values.at(-1)!)}`).join('. ');
+---
+<figure class="fig linechart">
+  <div class="fig-title">{title}</div>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={title}>
+    <desc>{desc}</desc>
+    {ticks.map((t) => (
+      <g class="tick"><line x1={L} x2={W - R} y1={y(t)} y2={y(t)} /><text x={L - 6} y={y(t) + 4} text-anchor="end">{fmt(t)}</text></g>
+    ))}
+    {zero && lo < 0 && <line class="zero" x1={L} x2={W - R} y1={y(0)} y2={y(0)} />}
+    {marks.map((m) => (
+      <g class="mark"><line x1={x(m.at)} x2={x(m.at)} y1={T} y2={H - B} /><text x={x(m.at) + 3} y={T + 9}>{m.label}</text></g>
+    ))}
+    {series.map((s) => (
+      <g class:list={['line', { accent: s.accent }]}>
+        <polyline points={pts(s.values)} />
+        <text x={x(s.values.length - 1) + 6} y={y(s.values.at(-1)!) + 4}>{s.label}</text>
+      </g>
+    ))}
+    <text class="axis" x={(L + W - R) / 2} y={H - 6} text-anchor="middle">{xLabel}</text>
+    <text class="axis" x="12" y={(T + H - B) / 2} text-anchor="middle" transform={`rotate(-90 12 ${(T + H - B) / 2})`}>{yLabel}</text>
+  </svg>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

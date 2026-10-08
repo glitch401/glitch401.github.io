@@ -1,0 +1,65 @@
+---
+title: 'My Stateful Memory Made the Fuzzer Worse'
+summary: 'A one-run win, a ten-run loss, and what telling a language model what not to do actually does.'
+date: 2026-07-25
+favourite: true
+tags: [llm, research, evaluation]
+---
+
+import BarChart from '../../components/BarChart.astro';
+import Flow from '../../components/Flow.astro';
+import Compare from '../../components/Compare.astro';
+import Callout from '../../components/Callout.astro';
+import StatStrip from '../../components/StatStrip.astro';
+import Tldr from '../../components/Tldr.astro';
+import Term from '../../components/Term.astro';
+import Waffle from '../../components/Waffle.astro';
+import Slope from '../../components/Slope.astro';
+import Wilson from '../../components/Wilson.astro';
+
+<Tldr>
+- One run per arm said memory helped. Ten runs per arm said it hurt (p = 0.0097).
+- Telling a model what to avoid pulls it toward those things. A list of untried cells worked better.
+- Over a six-hour campaign, memory still paid off: covered cells went from 125 to 141.
+</Tldr>
+
+<StatStrip items={[{value:'4 to -2.5',label:'change in distinct behaviours, pilot vs ten-run median'},{value:'p = 0.0097',label:'rank test, ten campaigns per arm'},{value:'125 to 141',label:'covered cells over a six-hour campaign'}]} />
+
+Since November 2025 I have been building an LLM-driven tester for 5G protocols. The model reads the specs, proposes odd message sequences, and a real testbed runs them. I'll write about the whole thing properly later. This post is about one small piece, because it taught me something I keep seeing elsewhere.
+
+The piece is memory. A fuzzer that forgets what it already tried will keep trying the same things. So I gave the generator a memory: a short list of the test cells it had already covered, and an instruction to avoid them.
+
+<Flow title="The loop, with memory" loop steps={['Generate test sequences','Run them on the testbed','Score each result','Record which cells were covered','Put a hint about that in the next prompt']} caption="The memory is the last two steps. The hint is where it went wrong." />
+
+## The pilot looked great
+
+I ran one campaign with memory and one without. Duplicate tests dropped from 50% to 33%. The number of distinct behaviours I found went from 12 to 16. I was ready to write the paragraph.
+
+Then I ran it properly: ten campaigns per arm, a rank test, an effect size. The result flipped. With memory, the median number of distinct behaviours fell from 15 to 12.5 (p = 0.0097). The first result was noise, and I had nearly built on it.
+
+<Slope title="Distinct behaviours found, no memory to memory" fromLabel="No memory" toLabel="Memory" items={[{label:'Pilot (n=1)',from:12,to:16},{label:'Ten runs (median)',from:15,to:12.5}]} caption="The same idea at two sample sizes. The pilot says memory adds 4. The ten-run median says it costs 2.5 (p = 0.0097)." />
+
+## Why it hurt
+
+I spent a while reading about this and the answer is not exotic. If you write "do not do X, Y, Z" in a prompt, you have put X, Y and Z in the prompt. Models drift toward what is in front of them. My list also grew every round, so the context got longer and the model repeated itself more.
+
+The fix was to stop describing the past and describe the frontier instead: a short "here are the cells you have not tried yet" list, placed at the end of the prompt. It carried the same information as the old list.
+
+<Compare title="Same information, two framings" beforeLabel="Told what to avoid" afterLabel="Told where to go">
+<div slot="before"><p>Already covered: cell 3, cell 7, cell 12, cell 14, cell 19 ... Do not repeat these.</p></div>
+<div slot="after"><p>Untried: 51 of 52 cells. Pick your next sequence from these.</p></div>
+</Compare>
+
+## What I can claim
+
+On the improved setup, memory was statistically neutral on every metric I tracked. The no-memory baseline was already producing almost no duplicates, so there was little left to remove.
+
+Where it did help was over a long run. In a six-hour campaign that carried the frontier forward, covered cells went from 125 to 141, and the tracker grew from 633 to 1,070 tests. So memory pays off across a campaign, not within a single run, and I'd be wrong to sell it as more than that.
+
+## What I took from it
+
+- One run per arm told me the opposite of what ten did. Run ten.
+- Tell the model where to go.
+- Write down the neutral result too. It stopped me from building the next experiment on a result that wasn't there.
+
+<Callout label="Caveat">Ten campaigns per arm is better than one, but still small. I report the rank-test p-value and an effect size. A neutral result on the improved setup means no detectable difference.</Callout>

@@ -1,0 +1,18 @@
+---
+import type { Post } from '../lib/content';
+import { fmtDate, readingMinutes } from '../lib/content';
+interface Props { posts: Post[] }
+const { posts } = Astro.props;
+---
+<ul class="entries">
+  {posts.map((p) => (
+    <li>
+      <a class="title" href={`/writing/${p.id}/`}>{p.data.title}</a>
+      <span class="summary">{p.data.summary}</span>
+      <span class="meta">
+        {fmtDate(p.data.date)} · {readingMinutes(p.body)} min ·
+        {p.data.tags.map((t) => <a class="inline-tag" href={`/tag/${t}/`}> {t}</a>)}
+      </span>
+    </li>
+  ))}
+</ul>

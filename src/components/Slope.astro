@@ -1,0 +1,28 @@
+---
+interface Item { label: string; from: number; to: number }
+interface Props { title: string; fromLabel: string; toLabel: string; items: Item[]; unit?: string; caption?: string }
+const { title, fromLabel, toLabel, items, unit = '', caption } = Astro.props;
+const all = items.flatMap((i) => [i.from, i.to]);
+const lo = Math.min(...all), hi = Math.max(...all);
+const H = 40 + items.length * 0 + 150, top = 40, bottom = H - 20;
+const y = (v: number) => bottom - ((v - lo) / (hi - lo || 1)) * (bottom - top);
+const fmt = (v: number) => `${v}${unit}`;
+const desc = items.map((i) => `${i.label}: ${fmt(i.from)} ${fromLabel} to ${fmt(i.to)} ${toLabel}`).join('. ');
+---
+<figure class="fig slope">
+  <div class="fig-title">{title}</div>
+  <svg viewBox={`0 0 480 ${H}`} role="img" aria-label={title}>
+    <desc>{desc}</desc>
+    <text x="150" y="18" text-anchor="end" class="col">{fromLabel}</text>
+    <text x="330" y="18" text-anchor="start" class="col">{toLabel}</text>
+    {items.map((i) => (
+      <g class:list={['s', i.to >= i.from ? 'up' : 'down']}>
+        <line x1="160" y1={y(i.from)} x2="320" y2={y(i.to)} />
+        <circle cx="160" cy={y(i.from)} r="4" /><circle cx="320" cy={y(i.to)} r="4" />
+        <text x="150" y={y(i.from) + 4} text-anchor="end">{i.label} {fmt(i.from)}</text>
+        <text x="330" y={y(i.to) + 4}>{fmt(i.to)} {i.to >= i.from ? '▲' : '▼'}</text>
+      </g>
+    ))}
+  </svg>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
