@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content';
+import { render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { site } from '../config';
+
+const jobs = (await getCollection('jobs')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const rendered = await Promise.all(jobs.map(async (j) => ({ job: j, Content: (await render(j)).Content })));
+const skills = [
+  'Graph Neural Networks', 'Natural Language Processing', 'PyTorch', 'LangChain & LangGraph',
+  'Apache Spark, Kafka and Cassandra', 'Elasticsearch and MongoDB', 'MLflow and Kubeflow', 'Ollama & local LLMs',
+];
+---
+<Base title="About">
+  <h1>About</h1>
+  <p>
+    My first taste of machine learning was research at <a href="https://www.iitb.ac.in/">IIT Bombay</a>,
+    teaching algorithms to find communities in social networks. I stayed two years and never really left graphs.
+  </p>
+  <p>
+    Industry came next. <a href="https://stylumia.ai/">Stylumia</a> had me forecasting fashion trends from
+    product images. <a href="https://byjus.com/">Byju's</a> had me recommending lessons to a few million students.
+    <a href="https://g2.com/">G2</a> kept me the longest: two years of graph neural network recommenders and
+    pipelines that catch fake software reviews.
+  </p>
+  <p>
+    Now I'm doing my Master's at UT Dallas. The thesis is about responsible knowledge graph representations.
+    Graphs are very good at remembering things about people; somebody should check what.
+  </p>
+  <p>
+    On the side I contribute to <a href="https://openclimatefix.org/">OpenClimateFix</a>, an open-source group
+    forecasting solar power. My patches are mostly plumbing, but it's plumbing that helps grid operators burn less gas.
+  </p>
+  <p>Recently working with: {skills.join(' · ')}.</p>
+
+  <h2>Experience</h2>
+  {rendered.map(({ job, Content }) => (
+    <div class="job">
+      <h3>{job.data.title} · <a href={job.data.url}>{job.data.company}</a></h3>
+      <div class="meta">{job.data.range} · {job.data.location}</div>
+      <div class="prose"><Content /></div>
+    </div>
+  ))}
+
+  <h2>Contact</h2>
+  <p>
+    Looking for a data scientist, want to argue about graphs, or found something broken on this site?
+    <a href={`mailto:${site.email}`}>Email me</a>; I actually reply.
+  </p>
+</Base>

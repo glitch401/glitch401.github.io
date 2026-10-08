@@ -1,0 +1,21 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Subscribe from '../../components/Subscribe.astro';
+import { getPosts, fmtDate, readingMinutes } from '../../lib/content';
+
+export async function getStaticPaths() {
+  return (await getPosts()).map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+<Base title={post.data.title} description={post.data.summary} indexed>
+  <h1>{post.data.title}</h1>
+  <p class="meta">
+    {fmtDate(post.data.date)} · {readingMinutes(post.body)} min read ·
+    {post.data.tags.map((t) => <a class="inline-tag" href={`/tag/${t}/`}> {t}</a>)}
+  </p>
+  <article class="prose"><Content /></article>
+  <Subscribe />
+</Base>

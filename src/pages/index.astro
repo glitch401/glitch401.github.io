@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import PostList from '../components/PostList.astro';
+import ProjectList from '../components/ProjectList.astro';
+import Subscribe from '../components/Subscribe.astro';
+import { getPosts, getProjects } from '../lib/content';
+
+const posts = (await getPosts()).slice(0, 5);
+const featured = (await getProjects()).filter((p) => p.data.featured).slice(0, 4);
+---
+<Base>
+  <section class="hero">
+    <img src="/me.jpg" alt="Indranil Biswas" width="112" height="112" />
+    <div>
+      <h1>Hi, I'm Indranil.</h1>
+      <p>
+        I'm a data scientist building ML on graphs and language models. Previously recommenders and
+        fraud detection at G2 and Byju's; now a Master's student at
+        <a href="https://cs.utdallas.edu/">UT Dallas</a>, writing a thesis on what knowledge graphs
+        quietly learn about people.
+      </p>
+    </div>
+  </section>
+
+  <p>Outside coursework I:</p>
+  <ul>
+    <li>Prototype <a href="/prototyping/">agents, GNNs and local-LLM tools</a>.</li>
+    <li>Contribute to <a href="https://openclimatefix.org/">OpenClimateFix</a>'s open-source weather models.</li>
+    <li>Write about <a href="/writing/">what I'm building and learning</a>.</li>
+  </ul>
+
+  <h2>Latest writing</h2>
+  <PostList posts={posts} />
+  <p><a href="/writing/">All writing →</a></p>
+
+  <h2>Selected prototypes</h2>
+  <ProjectList projects={featured} />
+  <p><a href="/prototyping/">All prototypes →</a></p>
+
+  <Subscribe />
+</Base>

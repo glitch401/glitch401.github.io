@@ -1,0 +1,19 @@
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props { projects: CollectionEntry<'projects'>[] }
+const { projects } = Astro.props;
+const blurb = (body = '') => body.trim().split('\n\n')[0];
+---
+<ul class="entries">
+  {projects.map((p) => (
+    <li>
+      <a class="title" href={p.data.external || p.data.github}>{p.data.title}</a>
+      <span class="summary">{blurb(p.body)}</span>
+      <span class="meta">
+        {p.data.github && <a href={p.data.github}>GitHub</a>}
+        {p.data.external && p.data.external !== p.data.github && <> · <a href={p.data.external}>Link</a></>}
+      </span>
+      <div class="tech">{p.data.tech.map((t) => <span>{t}</span>)}</div>
+    </li>
+  ))}
+</ul>

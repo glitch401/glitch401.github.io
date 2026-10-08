@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import ProjectList from '../components/ProjectList.astro';
+import { getProjects } from '../lib/content';
+const projects = await getProjects();
+---
+<Base title="Prototyping" description="Agents, graph neural networks and local-LLM prototypes.">
+  <h1>Prototyping</h1>
+  <p>Things I build to learn how they work. Most are open source.</p>
+  <ProjectList projects={projects} />
+</Base>

@@ -1,0 +1,18 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostList from '../../components/PostList.astro';
+import Subscribe from '../../components/Subscribe.astro';
+import { getPosts, tagCounts } from '../../lib/content';
+
+const posts = await getPosts();
+const tags = tagCounts(posts);
+---
+<Base title="Writing" description="Posts on ML, graphs, LLM agents and engineering.">
+  <h1>Writing</h1>
+  <div class="chips">
+    {tags.map(([t, n]) => <a class="chip" href={`/tag/${t}/`}>{t} {n}</a>)}
+    <a class="chip" href="/search/">search</a>
+  </div>
+  <PostList posts={posts} />
+  <Subscribe />
+</Base>
