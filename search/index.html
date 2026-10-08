@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Search · Indranil Biswas</title><meta name="description" content="Search all posts."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Raleway:wght@400;500;700&display=swap"><link rel="canonical" href="https://glitch401.github.io/search/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="apple-touch-icon" href="/apple-icon-180x180.png"><link rel="alternate" type="application/rss+xml" title="Indranil Biswas" href="/rss.xml"><meta property="og:title" content="Search · Indranil Biswas"><meta property="og:description" content="Search all posts."><meta property="og:url" content="https://glitch401.github.io/search/"><meta property="og:image" content="https://glitch401.github.io/og.png"><meta name="twitter:card" content="summary_large_image"><script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches))
+            document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Base.Bf5edZoz.css"></head><body><header class="site"><div class="wrap"><a class="brand" href="/">indranil</a><nav aria-label="Main"><a href="/writing/">Writing</a><a href="/prototyping/">Prototyping</a><a href="/about/">About</a><a href="/search/" aria-label="Search">Search</a></nav><button class="icon" id="theme" type="button" aria-label="Toggle dark mode">◐</button></div></header><main class="wrap"><h1>Search</h1><link href="/pagefind/pagefind-ui.css" rel="stylesheet"><div id="search"></div><p class="muted" id="dev-note" hidden>Search index is built by <code>npm run build</code>; it is not available in dev.</p><script src="/pagefind/pagefind-ui.js" onerror="document.getElementById('dev-note').hidden=false"></script><script>
+    window.addEventListener('DOMContentLoaded', function () {
+      if (window.PagefindUI) new PagefindUI({ element: '#search', showSubResults: true });
+    });
+  </script></main><footer class="site"><div class="wrap"><div class="links"><a href="https://github.com/glitch401" rel="me">GitHub</a><a href="https://www.linkedin.com/in/inb" rel="me">LinkedIn</a></div><div class="copy">© Indranil Biswas 2022 - 2026 • <a href="mailto:indranilbiswas7@gmail.com">Feedback</a> • <a href="/rss.xml">RSS</a></div></div></footer><script>
+      document.getElementById('theme').addEventListener('click', function () {
+        var dark = document.documentElement.classList.toggle('dark');
+        try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+      });
+    </script></body></html>

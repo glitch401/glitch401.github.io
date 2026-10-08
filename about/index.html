@@ -1,0 +1,51 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>About · Indranil Biswas</title><meta name="description" content="ML engineer building agents and graph ML. Writing and prototypes."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Raleway:wght@400;500;700&display=swap"><link rel="canonical" href="https://glitch401.github.io/about/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="apple-touch-icon" href="/apple-icon-180x180.png"><link rel="alternate" type="application/rss+xml" title="Indranil Biswas" href="/rss.xml"><meta property="og:title" content="About · Indranil Biswas"><meta property="og:description" content="ML engineer building agents and graph ML. Writing and prototypes."><meta property="og:url" content="https://glitch401.github.io/about/"><meta property="og:image" content="https://glitch401.github.io/og.png"><meta name="twitter:card" content="summary_large_image"><script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches))
+            document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Base.Bf5edZoz.css"></head><body><header class="site"><div class="wrap"><a class="brand" href="/">indranil</a><nav aria-label="Main"><a href="/writing/">Writing</a><a href="/prototyping/">Prototyping</a><a href="/about/" aria-current="page">About</a><a href="/search/" aria-label="Search">Search</a></nav><button class="icon" id="theme" type="button" aria-label="Toggle dark mode">◐</button></div></header><main class="wrap"><h1>About</h1><p>My first taste of machine learning was open-source work at <a href="https://www.iitb.ac.in/">IIT Bombay</a>in 2018. After that I went into industry: <a href="https://stylumia.ai/">Stylumia</a> for multimodal search,<a href="https://byjus.com/">Byju's</a> for transformers in production, and <a href="https://g2.com/">G2</a>for two years of graph neural networks over user-product data.</p><p>I finished my Master's in Computer Science at <a href="https://cs.utdallas.edu/">UT Dallas</a> in December 2025. Alongside it I interned at ISN on multi-agent systems and a multimodal risk advisor, and I still do research at UT Dallas on adversarial red-teaming agents for network protocols.</p><p>Today I'm a machine learning engineer at a major US telecom, building agents that resolve network faults end to end. Before that, and for a few months alongside it, I was a part-time founding engineer on a VR learning platform.</p><p>On the side I contribute to <a href="https://openclimatefix.org/">OpenClimateFix</a>, an open-source group forecasting solar power, and I run my own GPU server at home for local models.</p><p>Recently working with: Graph Neural Networks · Natural Language Processing · PyTorch · LangChain &amp; LangGraph · Azure and AWS · Terraform and CI/CD · MLflow and Kubeflow · llama.cpp &amp; local LLMs.</p><h2>Experience</h2><div class="job"><h3>Machine Learning Engineer · A major US telecom</h3><div class="meta">March 2026 - Present</div><div class="prose"><ul>
+<li>Built the agentic orchestration behind automated fault resolution for business fiber across the US customer base, from prediction through dispatch, field follow-up and ticket closure. Outage resolution went from days to hours</li>
+<li>Put deterministic guardrails around LLM classification, which cut false positives by roughly 75%</li>
+<li>Connected agent workflows to 18 vendor platforms with strictly typed Python contracts</li>
+<li>Built a real-time lead ingestion and propensity-scoring pipeline (doubly robust estimation, inverse probability weighting) with voice agents for inbound and outbound engagement. It finds sales that would otherwise have been missed</li>
+</ul>
+</div></div><div class="job"><h3>Founding Engineer (part-time) · Stealth startup, AI-powered VR learning</h3><div class="meta">November 2025 - June 2026</div><div class="prose"><ul>
+<li>Held about 90 ms bidirectional speech latency across 10,000+ daily messages on Azure Functions</li>
+<li>Built the backend on Django and PostgreSQL: 15+ REST endpoints with organization-scoped RBAC, bulk assignment and multi-tenant indexing, sustaining about 1,000 peak concurrent users</li>
+<li>Designed the multi-tenant SaaS infrastructure on Azure (6 Terraform components, CI/CD, OIDC, zero-downtime deploys), piloted with a fast-food chain and a bank with 1,000+ employees</li>
+</ul>
+</div></div><div class="job"><h3>Data Science Intern · <a href="https://www.isnetworld.com/">ISN</a></h3><div class="meta">March 2025 - December 2025</div><div class="prose"><ul>
+<li>Designed and deployed a multi-agent solution on Azure, including the serving infrastructure for a customer-facing chat agent and an internal copilot. It ingests 10+ TB of call recordings</li>
+<li>Led a 0-to-1 multimodal Risk Advisor from concept to deployment for 500,000+ industrial workers, processing text, video and geospatial data in real time</li>
+<li>Built facial ID verification into ISN’s Empower app, serving 500,000+ users</li>
+</ul>
+</div></div><div class="job"><h3>Graduate Research Assistant · <a href="https://cs.utdallas.edu/">UT Dallas</a></h3><div class="meta">January 2025 - Present</div><div class="prose"><ul>
+<li>Building an adversarial red-teaming agent for network protocols. An LLM proposes multi-hop attack sequences, and a live testbed runs them (12k unique sequences so far)</li>
+<li>Closed a reinforcement loop from the testbed back into the model: LoRA fine-tuned a 35B-parameter mixture-of-experts model across 2 H200 GPUs with DDP, lifting valid query generation from 0% to 39% on held-out prompts</li>
+<li>Finished an MS in Computer Science in December 2025</li>
+</ul>
+</div></div><div class="job"><h3>Data Scientist II · <a href="https://g2.com/">G2</a></h3><div class="meta">January 2022 - January 2024 · Remote</div><div class="prose"><ul>
+<li>Built and maintained deployment pipelines for user-product interaction models, with model versioning and experimentation, in a production system serving 90 million users a year</li>
+<li>Built and scaled graph neural networks over 20+ TB of user-product interaction data, with vector databases and graph representation learning pipelines behind recommendations and downstream systems</li>
+<li>Scaled a multimodal auto-moderation pipeline that saved 40% of manual effort at 90%+ confidence</li>
+</ul>
+</div></div><div class="job"><h3>Research Engineer · <a href="https://byjus.com/">BYJU&#39;S</a></h3><div class="meta">April 2021 - December 2021</div><div class="prose"><ul>
+<li>Optimized transformer architectures in production, cutting response time by 30% and lifting throughput by 15%</li>
+<li>Built a solution for math word problems by deploying GNN and NLP models into production</li>
+<li>Used structured paraphrasing to widen the diversity and quality of the training set</li>
+</ul>
+</div></div><div class="job"><h3>Data Scientist · <a href="https://stylumia.ai/">Stylumia</a></h3><div class="meta">May 2020 - March 2021</div><div class="prose"><ul>
+<li>Built a multimodal vertical search engine (NLU, BERT-as-a-service) that improved search relevance by 68% and cut response time by 0.3 s. It sits on a hierarchical ontology that organizes 4 million products into 10,000+ brands and categories</li>
+</ul>
+</div></div><div class="job"><h3>Research Scholar · <a href="https://www.iitb.ac.in/">IIT Bombay</a></h3><div class="meta">May 2018 - December 2018</div><div class="prose"><ul>
+<li>Contributed to openEdX: a peer-assessment module, automated grading and decentralized content management</li>
+</ul>
+</div></div><h2>Contact</h2><p>Looking for a data scientist, want to argue about graphs, or found something broken on this site?<a href="mailto:indranilbiswas7@gmail.com">Email me</a>; I actually reply.</p></main><footer class="site"><div class="wrap"><div class="links"><a href="https://github.com/glitch401" rel="me">GitHub</a><a href="https://www.linkedin.com/in/inb" rel="me">LinkedIn</a></div><div class="copy">© Indranil Biswas 2022 - 2026 • <a href="mailto:indranilbiswas7@gmail.com">Feedback</a> • <a href="/rss.xml">RSS</a></div></div></footer><script>
+      document.getElementById('theme').addEventListener('click', function () {
+        var dark = document.documentElement.classList.toggle('dark');
+        try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+      });
+    </script></body></html>

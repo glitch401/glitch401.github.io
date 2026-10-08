@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The Harness Is the Product · Indranil Biswas</title><meta name="description" content="What building an agent harness from scratch taught me about the part of the system that is not the model."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Raleway:wght@400;500;700&display=swap"><link rel="canonical" href="https://glitch401.github.io/writing/the-harness-is-the-product/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="apple-touch-icon" href="/apple-icon-180x180.png"><link rel="alternate" type="application/rss+xml" title="Indranil Biswas" href="/rss.xml"><meta property="og:title" content="The Harness Is the Product · Indranil Biswas"><meta property="og:description" content="What building an agent harness from scratch taught me about the part of the system that is not the model."><meta property="og:url" content="https://glitch401.github.io/writing/the-harness-is-the-product/"><meta property="og:image" content="https://glitch401.github.io/og.png"><meta name="twitter:card" content="summary_large_image"><script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches))
+            document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script><link rel="stylesheet" href="/_astro/Base.Bf5edZoz.css"></head><body><header class="site"><div class="wrap"><a class="brand" href="/">indranil</a><nav aria-label="Main"><a href="/writing/" aria-current="page">Writing</a><a href="/prototyping/">Prototyping</a><a href="/about/">About</a><a href="/search/" aria-label="Search">Search</a></nav><button class="icon" id="theme" type="button" aria-label="Toggle dark mode">◐</button></div></header><main class="wrap" data-pagefind-body><a class="back" href="/writing/">← Writing</a><h1>The Harness Is the Product</h1><p class="meta">01 Sep 2026 · 6 min read ·<a class="inline-tag" href="/tag/agents/"> agents</a><a class="inline-tag" href="/tag/llm/"> llm</a><a class="inline-tag" href="/tag/engineering/"> engineering</a></p><article class="prose"><aside class="tldr" aria-label="Summary"><strong>TL;DR</strong><div><ul>
+<li>I built an agent harness from scratch for CMU’s 11-768 (AI Agents) and ran a local 27B model through a bug fix in a chess server, a real Django issue, and games of chess.</li>
+<li>On the Django issue the fix took 5 model calls. Checking it took 29.</li>
+<li>Compaction kept the prompt under 5,900 tokens across 38 calls. The server’s own counts show each compaction cut the prompt by 31 to 50%.</li>
+<li>Most of what looked like “the model is weak” was a bug in my harness.</li>
+</ul></div></aside>
+<p>A harness is the code around a model. It sends a prompt, parses the tool calls that come back, runs them, and feeds the results in again. It also owns the tool definitions, the memory, the skills and the stop conditions. For this course I wrote one from scratch and pointed a 4-bit Qwen3.8-27B at it, served from <a href="/prototyping/">my home GPU server</a>. Nothing here needed a frontier model.</p>
+<h2 id="three-layers">Three layers</h2>
+<figure class="fig flow"><div class="fig-title">The loop every task ran through</div><ol class="steps"><li><span class="n">1</span>Build the prompt: task, history, and a short catalogue of skills</li><li><span class="n">2</span>Ask the model for its next action</li><li><span class="n">3</span>Run each tool call and link its result to the call that asked for it</li><li><span class="n">4</span>If the prompt has grown past the threshold, compact the old part</li></ol><div class="loopback" aria-hidden="true">↺ back to step 1</div><figcaption>If the model replies in prose with no tool call, the harness says so and asks again. A step limit ends the run.</figcaption></figure>
+<p>Skills use progressive disclosure. The prompt lists each skill in a line, and an <code>invoke_skill</code> tool loads the full instructions only when the model asks for them. Compaction is the memory layer: when the prompt crosses a threshold, the model writes a working memory of the older part. The task and the most recent step stay word for word.</p>
+<h2 id="a-bug-fix-that-ran-out-of-steps">A bug fix that ran out of steps</h2>
+<p>The first job was a bug in the chess server that only showed up at the end of a game. The agent read the server code and the tests, wrote a reproduction, fixed it, and ran the suite: 9 passed. It used all ten of its allowed calls, and the budget ran out one call before the final message.</p>
+<p>The agent did the work and the run still failed, because I had set the step limit without checking how long the task was.</p>
+<h2 id="a-django-issue-and-where-the-calls-went">A Django issue, and where the calls went</h2>
+<p>The second job was <code>django__django-15368</code> from SWE-bench: <code>bulk_update()</code> mishandled a plain <code>F()</code> expression and wrote the text of the expression into the SQL instead of the column. The fix is one line.</p>
+<figure class="fig timeline"><div class="fig-title">38 model calls on one Django issue</div><ol><li><span class="when">Calls 0 to 2</span><span>Orient: list the repo, read the function, check the imports.</span></li><li><span class="when">Calls 3 to 4</span><span>Patch: a sed one-liner failed on quoting, then a Python string replace applied the fix.</span></li><li><span class="when">Calls 5 to 33</span><span>Verify: work out how to run Django&#39;s own test settings, reproduce the bug, run the queries suite.</span></li><li><span class="when">Calls 34 to 37</span><span>Submit: a prose reply, invoke_skill, write the patch, send the final message.</span></li></ol><figcaption>Phases read from the saved trajectory.</figcaption></figure>
+<dl class="stats-strip"><div><dd>5</dd><dt>calls to find and apply the fix</dt></div><div><dd>29</dd><dt>calls to check it</dt></div><div><dd>4</dd><dt>compactions along the way</dt></div></dl>
+<p>Most of the agent’s effort went into working out how to check its own work. A harness can help there with readable tool output that does not flood the prompt, and with enough steps to finish.</p>
+<h2 id="what-compaction-did-to-the-prompt">What compaction did to the prompt</h2>
+<p>I set the compaction threshold at 6,000 tokens. The harness compacted four times, and the prompt never went past 5,890 tokens.</p>
+<figure class="fig linechart"><div class="fig-title">Prompt tokens per model call</div><svg viewBox="0 0 560 240" role="img" aria-label="Prompt tokens per model call"><desc>prompt: 38 points from 1,822 to 3,220</desc><g class="tick"><line x1="48" x2="464" y1="206" y2="206"></line><text x="42" y="210" text-anchor="end">1,822</text></g><g class="tick"><line x1="48" x2="464" y1="110" y2="110"></line><text x="42" y="114" text-anchor="end">3,856</text></g><g class="tick"><line x1="48" x2="464" y1="14" y2="14"></line><text x="42" y="18" text-anchor="end">5,890</text></g><g class="mark"><line x1="216.64864864864865" x2="216.64864864864865" y1="14" y2="206"></line><text x="219.64864864864865" y="23">compact</text></g><g class="mark"><line x1="295.35135135135135" x2="295.35135135135135" y1="14" y2="206"></line><text x="298.35135135135135" y="23">compact</text></g><g class="mark"><line x1="374.05405405405406" x2="374.05405405405406" y1="14" y2="206"></line><text x="377.05405405405406" y="23">compact</text></g><g class="mark"><line x1="452.7567567567568" x2="452.7567567567568" y1="14" y2="206"></line><text x="455.7567567567568" y="23">compact</text></g><g class="line accent"><polyline points="48,206 59.24324324324324,197.1740412979351 70.48648648648648,174.09439528023597 81.72972972972974,160.64306784660766 92.97297297297297,153.42182890855457 104.21621621621622,146.20058997050148 115.45945945945947,128.4070796460177 126.70270270270271,114.0117994100295 137.94594594594594,106.46017699115043 149.1891891891892,83.09734513274336 160.43243243243245,64.64306784660766 171.67567567567568,48.643067846607664 182.91891891891893,42.97935103244839 194.16216216216216,35.33333333333334 205.40540540540542,25.705014749262546 216.64864864864865,151.06194690265488 227.8918918918919,129.82300884955754 239.13513513513516,108.11209439528024 250.3783783783784,83.6637168141593 261.6216216216216,59.21533923303835 272.8648648648649,45.81120943952803 284.1081081081081,17.681415929203524 295.35135135135135,132.84365781710915 306.5945945945946,123.97050147492625 317.83783783783787,113.58702064896755 329.0810810810811,105.79941002949852 340.3243243243243,84.4660766961652 351.56756756756755,59.45132743362831 362.81081081081084,37.74041297935102 374.05405405405406,115.6637168141593 385.2972972972973,95.22713864306786 396.5405405405405,84.32448377581122 407.7837837837838,76.15929203539824 419.02702702702703,69.69321533923303 430.2702702702703,33.20943952802361 441.5135135135135,14 452.7567567567568,153.56342182890856 464,140.01769911504425"></polyline><text x="470" y="144.01769911504425">prompt</text></g><text class="axis" x="256" y="234" text-anchor="middle">Model call (0 to 37)</text><text class="axis" x="12" y="110" text-anchor="middle" transform="rotate(-90 12 110)">Prompt tokens</text></svg><figcaption>Token counts reported by the model server. Each drop is a compaction before that call.</figcaption></figure>
+<table>
+<thead>
+<tr>
+<th>Compaction before call</th>
+<th>Harness estimate</th>
+<th>Server count, call before to call after</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15</td>
+<td>5,352 to 2,006</td>
+<td>5,642 to 2,986 (47% less)</td>
+</tr>
+<tr>
+<td>22</td>
+<td>5,549 to 2,386</td>
+<td>5,812 to 3,372 (42% less)</td>
+</tr>
+<tr>
+<td>29</td>
+<td>5,202 to 2,648</td>
+<td>5,387 to 3,736 (31% less)</td>
+</tr>
+<tr>
+<td>36</td>
+<td>5,164 to 1,952</td>
+<td>5,890 to 2,933 (50% less)</td>
+</tr>
+</tbody>
+</table>
+<p>My harness estimates tokens roughly, so I trust the server’s column. It is less flattering: the estimates suggested cuts of 50 to 60%.</p>
+<p>The first working memory had the objective, the file and line to change, the edit already made, and the approaches that had failed: the <code>sed</code> command that broke on quoting, and test scripts that failed on app-label setup. Both survived the compaction, so they were still in front of the model afterward.</p>
+<aside class="callout"><strong>What I did not measure</strong><div>I did not run the same task without compaction, so I cannot say how many tokens it saved or whether it changed the number of steps. All I can say is that the agent kept working through four compactions and submitted a patch.</div></aside>
+<h2 id="five-bugs-that-looked-like-the-model">Five bugs that looked like the model</h2>
+<figure class="fig compare"><div class="fig-title">Bug 1: the observation that never arrived</div><div class="cols"><div class="col before"><div class="tag">Before</div><p>Tool results were only added on the error path. After a successful command the model saw nothing, so it acted as if it were working blind.</p></div><div class="col after"><div class="tag">After</div><p>Every tool call gets a result linked to its id, whether it succeeded or failed.</p></div></div></figure>
+<ol start="2">
+<li><strong>The skill nobody called.</strong> A submit skill existed, but the prompt only said skills were available. The model finished without it, no patch file was written, and the run failed. One required sentence fixed it: if a skill applies to finishing, invoke it before the final message. Even so, at call 34 of the Django run the model tried to wrap up in prose. The harness replied that no tool had been called, and the next call was <code>invoke_skill</code>. I cannot tell how much of that was the prompt rule and how much was the nudge.</li>
+<li><strong>Tool schemas are code.</strong> Mine had unmatched braces, a set literal where a dict belonged, a missing key, and descriptions that lost their spaces when strings were joined. A tool description is part of the prompt, so a broken one breaks the prompt and nothing crashes to tell you.</li>
+<li><strong>Parallel calls on shared state.</strong> A model can send two <code>play_move</code> calls in one response. The harness has to allow one move per turn and refresh its view of the game after any code the model runs.</li>
+<li><strong>The step budget</strong> from the chess-server fix above.</li>
+</ol>
+<h2 id="what-i-would-tell-the-next-person">What I would tell the next person</h2>
+<ol>
+<li>The model only knows what the tool results tell it. Test that path like a public API.</li>
+<li>Tool descriptions, skill descriptions and system prompts are the controls you have. Review them like code.</li>
+<li>If you want a behaviour, require it in the prompt. A skill being available does not mean it gets used.</li>
+<li>Budget steps for checking the work, not only for doing it.</li>
+<li>Compact old work, keep the task word for word, and never split a step from its results.</li>
+<li>Save every trajectory. That is how you tell a model problem from a harness problem.</li>
+</ol>
+<p>The same harness also played chess. What happened when I put a search behind it is in <a href="/writing/same-bot-two-games/">Same Bot, Two Games</a>.</p></article><h2 class="related sec">Related articles</h2><ul class="dated"><li><time datetime="2026-10-08T00:00:00.000Z">08 Oct 2026</time><a href="/writing/same-bot-two-games/">Same Bot, Two Games</a></li><li><time datetime="2026-07-30T00:00:00.000Z">30 Jul 2026</time><a href="/writing/two-stores-one-truth/">Two Stores, One Truth</a></li><li><time datetime="2026-08-10T00:00:00.000Z">10 Aug 2026</time><a href="/writing/two-gpus-at-home/">What Two GPUs at Home Taught Me</a></li></ul></main><footer class="site"><div class="wrap"><div class="links"><a href="https://github.com/glitch401" rel="me">GitHub</a><a href="https://www.linkedin.com/in/inb" rel="me">LinkedIn</a></div><div class="copy">© Indranil Biswas 2022 - 2026 • <a href="mailto:indranilbiswas7@gmail.com">Feedback</a> • <a href="/rss.xml">RSS</a></div></div></footer><script>
+      document.getElementById('theme').addEventListener('click', function () {
+        var dark = document.documentElement.classList.toggle('dark');
+        try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+      });
+    </script></body></html>
