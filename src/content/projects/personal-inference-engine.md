@@ -23,7 +23,7 @@ A home GPU server with two consumer GPUs (an 8 GB card and a 24 GB card) that se
 
 ## How it evolved
 
-<figure class="fig timeline"><div class="fig-title">August 2026, in four entries</div><ol>
+<figure class="fig timeline"><div class="fig-title">August 2025, in four entries</div><ol>
 <li><span class="when">10 Aug</span><span>An Ollama upgrade cut resident memory by about 40%.</span></li>
 <li><span class="when">13 Aug</span><span>Measured the GPU idle about 60% of the time.</span></li>
 <li><span class="when">26 Aug</span><span>Two GPUs, and the first hard crashes under dual-GPU load.</span></li>
