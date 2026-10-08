@@ -1,7 +1,8 @@
 export const site = {
   title: 'Indranil Biswas',
   description:
-    'Data scientist working on graph neural networks, NLP and LLM agents. Writing and prototypes.',
+    'ML engineer building agents and graph ML. Writing and prototypes.',
+  since: 2022,
   email: 'indranilbiswas7@gmail.com',
   social: [
     { name: 'GitHub', url: 'https://github.com/glitch401' },

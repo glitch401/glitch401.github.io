@@ -1,0 +1,5 @@
+---
+interface Props { label?: string }
+const { label = 'Note' } = Astro.props;
+---
+<aside class="callout"><strong>{label}</strong><div><slot /></div></aside>

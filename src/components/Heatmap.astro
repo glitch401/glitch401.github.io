@@ -1,0 +1,19 @@
+---
+interface Props { title: string; rows: string[]; cols: string[]; values: number[][]; corner?: string; caption?: string; max?: number }
+const { title, rows, cols, values, corner = '', caption, max } = Astro.props;
+const top = max ?? Math.max(...values.flat(), 1);
+---
+<figure class="fig heatmap">
+  <div class="fig-title">{title}</div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>{corner}</th>{cols.map((c) => <th scope="col">{c}</th>)}</tr></thead>
+      <tbody>
+        {rows.map((r, i) => (
+          <tr><th scope="row">{r}</th>{values[i].map((v) => <td style={`--v:${Math.round((v / top) * 100)}%`}>{v}</td>)}</tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

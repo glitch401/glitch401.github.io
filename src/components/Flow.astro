@@ -1,0 +1,14 @@
+---
+interface Props { title: string; steps: string[]; loop?: boolean; caption?: string }
+const { title, steps, loop = false, caption } = Astro.props;
+---
+<figure class="fig flow">
+  <div class="fig-title">{title}</div>
+  <ol class="steps">
+    {steps.map((s, i) => (
+      <li><span class="n">{i + 1}</span>{s}</li>
+    ))}
+  </ol>
+  {loop && <div class="loopback" aria-hidden="true">↺ back to step 1</div>}
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

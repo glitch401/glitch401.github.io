@@ -1,0 +1,12 @@
+---
+interface Props { title: string; total: number; highlight: number; highlightLabel: string; restLabel: string; caption?: string }
+const { title, total, highlight, highlightLabel, restLabel, caption } = Astro.props;
+---
+<figure class="fig waffle">
+  <div class="fig-title">{title}</div>
+  <div class="cells" role="img" aria-label={`${highlight} of ${total}: ${highlightLabel}. The other ${total - highlight}: ${restLabel}.`}>
+    {Array.from({ length: total }, (_, i) => <span class:list={['cell', { on: i < highlight }]}></span>)}
+  </div>
+  <div class="legend"><span><i class="cell on"></i> {highlightLabel} ({highlight})</span><span><i class="cell"></i> {restLabel} ({total - highlight})</span></div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

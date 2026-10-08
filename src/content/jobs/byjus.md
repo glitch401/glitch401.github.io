@@ -1,14 +1,11 @@
 ---
-date: '2021-06-01'
-title: 'Data Scientist'
-company: 'Byjus'
-location: 'Bengaluru, India'
-range: 'June 2021 - July 2022'
+date: '2021-04-01'
+title: 'Research Engineer'
+company: "BYJU'S"
+range: 'April 2021 - December 2021'
 url: 'https://byjus.com/'
 ---
 
-- Built the recommendation engine serving 5M+ students. Engagement rose 40% after launch
-- Trained models that flag at-risk students early (gradient boosting, survival analysis), which helped cut dropout rates by 18%
-- Wrote the Spark pipelines that turn 50GB+ of daily interaction logs into ML-ready features
-- Shipped an NLP pipeline that auto-tags educational questions: 100K+ processed at 92% accuracy
-- Worked with product teams on adaptive difficulty and smart revision scheduling
+- Optimized transformer architectures in production, cutting response time by 30% and lifting throughput by 15%
+- Built a solution for math word problems by deploying GNN and NLP models into production
+- Used structured paraphrasing to widen the diversity and quality of the training set

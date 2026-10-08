@@ -2,20 +2,27 @@
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Subscribe from '../../components/Subscribe.astro';
+import DatedList from '../../components/DatedList.astro';
 import { getPosts, fmtDate, readingMinutes } from '../../lib/content';
 
 export async function getStaticPaths() {
   return (await getPosts()).map((post) => ({ params: { slug: post.id }, props: { post } }));
 }
 const { post } = Astro.props;
+const all = await getPosts();
+const shared = (p: typeof post) => p.data.tags.filter((t) => post.data.tags.includes(t)).length;
+const related = all.filter((p) => p.id !== post.id).sort((a, b) => shared(b) - shared(a) || b.data.date.getTime() - a.data.date.getTime()).slice(0, 3);
 const { Content } = await render(post);
 ---
 <Base title={post.data.title} description={post.data.summary} indexed>
+  <a class="back" href="/writing/">← Writing</a>
   <h1>{post.data.title}</h1>
   <p class="meta">
     {fmtDate(post.data.date)} · {readingMinutes(post.body)} min read ·
     {post.data.tags.map((t) => <a class="inline-tag" href={`/tag/${t}/`}> {t}</a>)}
   </p>
   <article class="prose"><Content /></article>
+  <h2 class="related sec">Related articles</h2>
+  <DatedList posts={related} />
   <Subscribe />
 </Base>

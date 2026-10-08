@@ -1,0 +1,11 @@
+---
+interface Props { title: string; items: { when: string; text: string }[]; caption?: string }
+const { title, items, caption } = Astro.props;
+---
+<figure class="fig timeline">
+  <div class="fig-title">{title}</div>
+  <ol>
+    {items.map((i) => <li><span class="when">{i.when}</span><span>{i.text}</span></li>)}
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

@@ -1,0 +1,12 @@
+---
+interface Props { title: string; beforeLabel?: string; afterLabel?: string; caption?: string }
+const { title, beforeLabel = 'Before', afterLabel = 'After', caption } = Astro.props;
+---
+<figure class="fig compare">
+  <div class="fig-title">{title}</div>
+  <div class="cols">
+    <div class="col before"><div class="tag">{beforeLabel}</div><slot name="before" /></div>
+    <div class="col after"><div class="tag">{afterLabel}</div><slot name="after" /></div>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

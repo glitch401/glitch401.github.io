@@ -1,14 +1,9 @@
 ---
-date: '2020-08-01'
-title: 'Data Science Intern'
+date: '2020-05-01'
+title: 'Data Scientist'
 company: 'Stylumia'
-location: 'Bengaluru, India'
-range: 'August 2020 - May 2021'
+range: 'May 2020 - March 2021'
 url: 'https://stylumia.ai/'
 ---
 
-- Built computer vision models for fashion trend forecasting on 1M+ product images, predicting upcoming styles with 78% accuracy
-- Scraped 20+ e-commerce sites (Python, Selenium) into a 500K-image dataset with metadata
-- Implemented visual similarity search with deep metric learning and FAISS. Queries come back in under 100ms
-- Built Plotly and Dash dashboards to walk fashion buyers through the trend calls
-- Prototyped GAN-generated synthetic fashion images to stretch the training data further
+- Built a multimodal vertical search engine (NLU, BERT-as-a-service) that improved search relevance by 68% and cut response time by 0.3 s. It sits on a hierarchical ontology that organizes 4 million products into 10,000+ brands and categories

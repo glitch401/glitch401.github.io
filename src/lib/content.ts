@@ -4,8 +4,11 @@ export type Post = CollectionEntry<'writing'>;
 
 export const readingMinutes = (body = '') => Math.max(1, Math.round(body.split(/\s+/).length / 230));
 
-export const fmtDate = (d: Date) =>
-  d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+export const fmtDate = (d: Date) => {
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+  return `${day} ${month} ${d.getUTCFullYear()}`;
+};
 
 export async function getPosts(): Promise<Post[]> {
   const posts = await getCollection('writing', (p) => !p.data.draft);

@@ -1,0 +1,108 @@
+---
+title: 'The Harness Is the Product'
+summary: 'What building an agent harness from scratch taught me about the part of the system that is not the model.'
+date: 2026-09-01
+tags: [agents, llm, engineering]
+---
+
+import Tldr from '../../components/Tldr.astro';
+import Flow from '../../components/Flow.astro';
+import Timeline from '../../components/Timeline.astro';
+import LineChart from '../../components/LineChart.astro';
+import StatStrip from '../../components/StatStrip.astro';
+import Compare from '../../components/Compare.astro';
+import Callout from '../../components/Callout.astro';
+
+<Tldr>
+- I built an agent harness from scratch for CMU's 11-768 (AI Agents) and ran a local 27B model through a bug fix in a chess server, a real Django issue, and games of chess.
+- On the Django issue the fix took 5 model calls. Checking it took 29.
+- Compaction kept the prompt under 5,900 tokens across 38 calls. The server's own counts show each compaction cut the prompt by 31 to 50%.
+- Most of what looked like "the model is weak" was a bug in my harness.
+</Tldr>
+
+A harness is the code around a model. It sends a prompt, parses the tool calls that come back, runs them, and feeds the results in again. It also owns the tool definitions, the memory, the skills and the stop conditions. For this course I wrote one from scratch and pointed a 4-bit Qwen3.8-27B at it, served from [my home GPU server](/prototyping/). Nothing here needed a frontier model.
+
+## Three layers
+
+<Flow title="The loop every task ran through" loop steps={[
+  'Build the prompt: task, history, and a short catalogue of skills',
+  'Ask the model for its next action',
+  'Run each tool call and link its result to the call that asked for it',
+  'If the prompt has grown past the threshold, compact the old part',
+]} caption="If the model replies in prose with no tool call, the harness says so and asks again. A step limit ends the run." />
+
+Skills use progressive disclosure. The prompt lists each skill in a line, and an `invoke_skill` tool loads the full instructions only when the model asks for them. Compaction is the memory layer: when the prompt crosses a threshold, the model writes a working memory of the older part. The task and the most recent step stay word for word.
+
+## A bug fix that ran out of steps
+
+The first job was a bug in the chess server that only showed up at the end of a game. The agent read the server code and the tests, wrote a reproduction, fixed it, and ran the suite: 9 passed. It used all ten of its allowed calls, and the budget ran out one call before the final message.
+
+The agent did the work and the run still failed, because I had set the step limit without checking how long the task was.
+
+## A Django issue, and where the calls went
+
+The second job was `django__django-15368` from SWE-bench: `bulk_update()` mishandled a plain `F()` expression and wrote the text of the expression into the SQL instead of the column. The fix is one line.
+
+<Timeline title="38 model calls on one Django issue" items={[
+  { when: 'Calls 0 to 2', text: 'Orient: list the repo, read the function, check the imports.' },
+  { when: 'Calls 3 to 4', text: 'Patch: a sed one-liner failed on quoting, then a Python string replace applied the fix.' },
+  { when: 'Calls 5 to 33', text: "Verify: work out how to run Django's own test settings, reproduce the bug, run the queries suite." },
+  { when: 'Calls 34 to 37', text: 'Submit: a prose reply, invoke_skill, write the patch, send the final message.' },
+]} caption="Phases read from the saved trajectory." />
+
+<StatStrip items={[
+  { value: '5', label: 'calls to find and apply the fix' },
+  { value: '29', label: 'calls to check it' },
+  { value: '4', label: 'compactions along the way' },
+]} />
+
+Most of the agent's effort went into working out how to check its own work. A harness can help there with readable tool output that does not flood the prompt, and with enough steps to finish.
+
+## What compaction did to the prompt
+
+I set the compaction threshold at 6,000 tokens. The harness compacted four times, and the prompt never went past 5,890 tokens.
+
+<LineChart
+  title="Prompt tokens per model call"
+  xLabel="Model call (0 to 37)"
+  yLabel="Prompt tokens"
+  series={[{ label: 'prompt', accent: true, values: [1822, 2009, 2498, 2783, 2936, 3089, 3466, 3771, 3931, 4426, 4817, 5156, 5276, 5438, 5642, 2986, 3436, 3896, 4414, 4932, 5216, 5812, 3372, 3560, 3780, 3945, 4397, 4927, 5387, 3736, 4169, 4400, 4573, 4710, 5483, 5890, 2933, 3220] }]}
+  marks={[{ at: 15, label: 'compact' }, { at: 22, label: 'compact' }, { at: 29, label: 'compact' }, { at: 36, label: 'compact' }]}
+  caption="Token counts reported by the model server. Each drop is a compaction before that call."
+/>
+
+| Compaction before call | Harness estimate | Server count, call before to call after |
+|---|---|---|
+| 15 | 5,352 to 2,006 | 5,642 to 2,986 (47% less) |
+| 22 | 5,549 to 2,386 | 5,812 to 3,372 (42% less) |
+| 29 | 5,202 to 2,648 | 5,387 to 3,736 (31% less) |
+| 36 | 5,164 to 1,952 | 5,890 to 2,933 (50% less) |
+
+My harness estimates tokens roughly, so I trust the server's column. It is less flattering: the estimates suggested cuts of 50 to 60%.
+
+The first working memory had the objective, the file and line to change, the edit already made, and the approaches that had failed: the `sed` command that broke on quoting, and test scripts that failed on app-label setup. Both survived the compaction, so they were still in front of the model afterward.
+
+<Callout label="What I did not measure">I did not run the same task without compaction, so I cannot say how many tokens it saved or whether it changed the number of steps. All I can say is that the agent kept working through four compactions and submitted a patch.</Callout>
+
+## Five bugs that looked like the model
+
+<Compare title="Bug 1: the observation that never arrived" beforeLabel="Before" afterLabel="After">
+  <p slot="before">Tool results were only added on the error path. After a successful command the model saw nothing, so it acted as if it were working blind.</p>
+  <p slot="after">Every tool call gets a result linked to its id, whether it succeeded or failed.</p>
+</Compare>
+
+2. **The skill nobody called.** A submit skill existed, but the prompt only said skills were available. The model finished without it, no patch file was written, and the run failed. One required sentence fixed it: if a skill applies to finishing, invoke it before the final message. Even so, at call 34 of the Django run the model tried to wrap up in prose. The harness replied that no tool had been called, and the next call was `invoke_skill`. I cannot tell how much of that was the prompt rule and how much was the nudge.
+3. **Tool schemas are code.** Mine had unmatched braces, a set literal where a dict belonged, a missing key, and descriptions that lost their spaces when strings were joined. A tool description is part of the prompt, so a broken one breaks the prompt and nothing crashes to tell you.
+4. **Parallel calls on shared state.** A model can send two `play_move` calls in one response. The harness has to allow one move per turn and refresh its view of the game after any code the model runs.
+5. **The step budget** from the chess-server fix above.
+
+## What I would tell the next person
+
+1. The model only knows what the tool results tell it. Test that path like a public API.
+2. Tool descriptions, skill descriptions and system prompts are the controls you have. Review them like code.
+3. If you want a behaviour, require it in the prompt. A skill being available does not mean it gets used.
+4. Budget steps for checking the work, not only for doing it.
+5. Compact old work, keep the task word for word, and never split a step from its results.
+6. Save every trajectory. That is how you tell a model problem from a harness problem.
+
+The same harness also played chess. What happened when I put a search behind it is in [Same Bot, Two Games](/writing/same-bot-two-games/).

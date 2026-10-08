@@ -1,41 +1,87 @@
 ---
 import Base from '../layouts/Base.astro';
-import PostList from '../components/PostList.astro';
-import ProjectList from '../components/ProjectList.astro';
+import DatedList from '../components/DatedList.astro';
 import Subscribe from '../components/Subscribe.astro';
 import { getPosts, getProjects } from '../lib/content';
 
-const posts = (await getPosts()).slice(0, 5);
-const featured = (await getProjects()).filter((p) => p.data.featured).slice(0, 4);
+const all = await getPosts();
+const latest = all.slice(0, 10);
+const favourites = all.filter((p) => p.data.favourite);
+const projects = await getProjects();
+const featured = projects.filter((p) => p.data.featured);
+const resources = projects.filter((p) => !p.data.featured);
+const words = all.reduce((n, p) => n + (p.body ?? '').split(/\s+/).filter(Boolean).length, 0);
+
+const roles = ['a painter', 'a data scientist', 'a stoic', 'a research engineer', 'an ML engineer'];
+const href = (p: (typeof projects)[number]) => p.data.external || p.data.github || '/prototyping/';
+const blurb = (body = '') => (body.trim().split('\n\n')[0].match(/^.*?[.!?](\s|$)/)?.[0] ?? body).trim();
 ---
 <Base>
   <section class="hero">
-    <img src="/me.jpg" alt="Indranil Biswas" width="112" height="112" />
-    <div>
-      <h1>Hi, I'm Indranil.</h1>
-      <p>
-        I'm a data scientist building ML on graphs and language models. Previously recommenders and
-        fraud detection at G2 and Byju's; now a Master's student at{' '}
-        <a href="https://cs.utdallas.edu/">UT Dallas</a>, writing a thesis on what knowledge graphs
-        quietly learn about people.
-      </p>
-    </div>
+    <h1>Hi, I'm Indranil, <span class="rotator" data-words={JSON.stringify(roles)}>{roles[0]}</span>.</h1>
+    <p>
+      I build agents and ML on graphs and language models. I'm an ML engineer at a major US telecom,
+      where dynamic agents handle multi-modal inbound/outbound campaigns to fault resolution end to end.
+      At <a href="https://cs.utdallas.edu/">UT Dallas</a> I research adversarial red-teaming agents for
+      network protocols. Before that, graph ML and recommenders at <a href="https://www.g2.com/">G2</a>
+      and transformers in production at <a href="https://byjus.com/">Byju's</a>. Outside of work, I also...
+    </p>
   </section>
 
-  <p>Outside coursework I:</p>
-  <ul>
-    <li>Prototype <a href="/prototyping/">agents, GNNs and local-LLM tools</a>.</li>
-    <li>Contribute to <a href="https://openclimatefix.org/">OpenClimateFix</a>'s open-source weather models.</li>
-    <li>Write about <a href="/writing/">what I'm building and learning</a>.</li>
+  <ul class="bullets">
+    <li>Write about <a href="/writing/">agents, graph ML, and what I'm learning</a>.</li>
+    <li>Prototype <a href="/prototyping/">local-first tools</a>: a personal inference engine, protocol red-teaming agents, and a notes-to-knowledge-base workflow in Obsidian.</li>
+    <li>Contribute to <a href="https://openclimatefix.org/">OpenClimateFix</a>'s open-source graph weather models.</li>
+    <li>Paint, and read the Stoics when things get loud.</li>
   </ul>
 
-  <h2>Latest writing</h2>
-  <PostList posts={posts} />
-  <p><a href="/writing/">All writing →</a></p>
-
-  <h2>Selected prototypes</h2>
-  <ProjectList projects={featured} />
-  <p><a href="/prototyping/">All prototypes →</a></p>
-
   <Subscribe />
+
+  {latest.length > 0 && (
+    <>
+      <h2 class="sec">Latest</h2>
+      <DatedList posts={latest} />
+    </>
+  )}
+
+  {favourites.length > 0 && (
+    <>
+      <h2 class="sec">My Favourites</h2>
+      <DatedList posts={favourites} />
+    </>
+  )}
+
+  <p class="stats">
+    {all.length} posts, {projects.length} prototypes, {words.toLocaleString('en-US')} words, and countless hours.
+  </p>
+
+  <h2 class="sec">Selected Prototypes</h2>
+  <ul class="bullets">
+    {featured.map((p) => <li><a href={href(p)}>{p.data.title}</a>: {blurb(p.body)}</li>)}
+  </ul>
+
+  {resources.length > 0 && (
+    <>
+      <h2 class="sec">Resources</h2>
+      <ul class="bullets">
+        {resources.map((p) => <li><a href={href(p)}>{p.data.title}</a>: {blurb(p.body)}</li>)}
+      </ul>
+    </>
+  )}
 </Base>
+
+<script>
+  const el = document.querySelector<HTMLElement>('.rotator');
+  if (el && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const words: string[] = JSON.parse(el.dataset.words ?? '[]');
+    let i = 0;
+    setInterval(() => {
+      el.classList.add('out');
+      setTimeout(() => {
+        i = (i + 1) % words.length;
+        el.textContent = words[i];
+        el.classList.remove('out');
+      }, 300);
+    }, 2200);
+  }
+</script>

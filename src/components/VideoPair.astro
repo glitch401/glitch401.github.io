@@ -1,0 +1,18 @@
+---
+interface Clip { src: string; poster: string; label: string; note: string }
+interface Props { title: string; clips: Clip[]; caption?: string }
+const { title, clips, caption } = Astro.props;
+---
+<figure class="fig videopair">
+  <div class="fig-title">{title}</div>
+  <div class="clips">
+    {clips.map((c) => (
+      <div class="clip">
+        <div class="tag">{c.label}</div>
+        <video src={c.src} poster={c.poster} controls muted playsinline preload="none" aria-label={`${c.label}: ${c.note}`}></video>
+        <div class="note">{c.note}</div>
+      </div>
+    ))}
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

@@ -1,0 +1,28 @@
+---
+interface Msg { from: number; to: number; text: string }
+interface Props { title: string; actors: string[]; messages: Msg[]; caption?: string }
+const { title, actors, messages, caption } = Astro.props;
+const colW = 460 / actors.length, cx = (i: number) => 10 + colW * i + colW / 2;
+const H = 50 + messages.length * 36;
+const desc = messages.map((m, i) => `${i + 1}. ${actors[m.from]} to ${actors[m.to]}: ${m.text}`).join(' ');
+---
+<figure class="fig sequence">
+  <div class="fig-title">{title}</div>
+  <svg viewBox={`0 0 480 ${H}`} role="img" aria-label={title}>
+    <desc>{desc}</desc>
+    <defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" /></marker></defs>
+    {actors.map((a, i) => (
+      <g><text x={cx(i)} y="16" text-anchor="middle" class="actor">{a}</text><line x1={cx(i)} y1="24" x2={cx(i)} y2={H - 6} class="life" /></g>
+    ))}
+    {messages.map((m, n) => {
+      const y = 48 + n * 36, a = cx(m.from), b = cx(m.to);
+      return (
+        <g>
+          <line x1={a} y1={y} x2={b + (b > a ? -2 : b < a ? 2 : 0)} y2={y} class="msg" marker-end="url(#ah)" />
+          <text x={(a + b) / 2} y={y - 6} text-anchor="middle">{n + 1}. {m.text}</text>
+        </g>
+      );
+    })}
+  </svg>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

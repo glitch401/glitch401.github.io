@@ -13,6 +13,6 @@ const tags = tagCounts(posts);
     {tags.map(([t, n]) => <a class="chip" href={`/tag/${t}/`}>{t} {n}</a>)}
     <a class="chip" href="/search/">search</a>
   </div>
-  <PostList posts={posts} />
+  {posts.length ? <PostList posts={posts} /> : <p class="muted">Nothing here yet.</p>}
   <Subscribe />
 </Base>

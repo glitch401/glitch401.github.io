@@ -1,0 +1,5 @@
+---
+interface Props { def: string }
+const { def } = Astro.props;
+---
+<span class="term" tabindex="0" role="note" data-def={def}><slot /></span>

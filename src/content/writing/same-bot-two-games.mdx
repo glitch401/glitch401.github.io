@@ -1,0 +1,87 @@
+---
+title: 'Same Bot, Two Games'
+summary: 'A language model lost to a two-ply chess bot. A four-ply alpha-beta search behind the same harness mated it in 17.'
+date: 2026-10-08
+tags: [agents, llm, search]
+favourite: true
+---
+
+import Tldr from '../../components/Tldr.astro';
+import VideoPair from '../../components/VideoPair.astro';
+import LineChart from '../../components/LineChart.astro';
+import StatStrip from '../../components/StatStrip.astro';
+import Callout from '../../components/Callout.astro';
+import Compare from '../../components/Compare.astro';
+
+<Tldr>
+- Playing White with only a `play_move` tool, a local 27B model lost to a deterministic two-ply bot by checkmate on move 33.
+- With a depth-4 alpha-beta search choosing White's moves, the same bot was mated in 17.
+- Search depth decided the result. An evaluation bonus I expected to matter did not.
+- The winner is a program I wrote, not the model. The model running that search itself is a hypothesis I have not tested yet.
+</Tldr>
+
+This is the chess half of the harness I built for CMU's 11-768. The harness itself, and the bugs that taught me the most, are in [The Harness Is the Product](/writing/the-harness-is-the-product/).
+
+The opponent is a deterministic engine that looks two plies ahead: its own move and White's best reply. I played White against it twice.
+
+<VideoPair
+  title="Before and after, against the same bot"
+  clips={[
+    { src: '/media/harness/qwen-loses.mp4', poster: '/media/harness/qwen-loses.jpg', label: 'Before: model + play_move', note: 'Qwen3.8-27B picks every move. Lost by checkmate on move 33. 85 seconds.' },
+    { src: '/media/harness/search-mates.mp4', poster: '/media/harness/search-mates.jpg', label: 'After: depth-4 search', note: 'Alpha-beta picks every move. Checkmate on move 17. 41 seconds.' },
+  ]}
+  caption="In the first game the arrows are the top five moves by a two-ply scorer, computed after the game. They are not moves the model considered. In the second game they are the search's own top five."
+/>
+
+## Before: the model picks, a tool plays
+
+The model sees the board as text, picks a move from the legal list, and calls `play_move`. That was its only tool. It made 36 calls for 33 moves. Three were rejected as illegal rook moves, even though the legal moves were listed in front of it.
+
+The game turned in a few moves. On move 14 the model played `Qa6`, and Black took the queen with a rook. The two-ply scorer I used to rank moves put `Qa6` 31st of 35 legal moves, and it cost nine points of material in one turn. By the end White had only its king.
+
+## After: a deeper search behind the same game
+
+Then I replaced the model with a program: an alpha-beta search that scores every legal move and plays the best one. Same bot, same server.
+
+<StatStrip items={[
+  { value: 'Draw', label: 'depth 2, after 17 moves' },
+  { value: 'Win in 53', label: 'depth 3' },
+  { value: 'Mate in 17', label: 'depth 4' },
+]} />
+
+Depth 2 sees as far as the bot does, and it drew. One extra ply was enough to win, and a second one made the win quick.
+
+<LineChart
+  title="Material balance after each full move"
+  xLabel="Move"
+  yLabel="White minus Black (pawn = 1)"
+  zero
+  series={[
+    { label: 'Model', values: [0, 0, -3, -1, 0, 0, -1, -4, -3, -3, -6, -6, -6, -15, -18, -19, -24, -25, -30, -31, -31, -31, -32, -32, -33, -33, -34, -34, -34, -34, -42, -42, -42] },
+    { label: 'Search', accent: true, values: [0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1, 2] },
+  ]}
+  caption="Pawn 1, knight and bishop 3, rook 5, queen 9. The drop at move 14 is Qa6."
+/>
+
+Material stayed within two points of even the whole game, so the win came from a mating attack. It ends `Bb6+ Qxb6 Qxf8#`: the two-ply bot took a bishop sacrifice, and White's queen mated. Seeing that line takes four plies, which a two-ply search does not have.
+
+I added a bonus to the evaluation for pushing the enemy king toward the edge and expected it to matter. It did not. Without it, depth 4 still mates in 17, and depth 3 wins in 26 moves instead of 53. The game is deterministic, and re-running depth 4 reproduced it move for move.
+
+<Callout label="A number I almost reported">I wanted to report how often each player picked the best move. That depends on who decides what "best" is. Judged by the depth-4 search, the model picked its top move in 7 of 33 turns (median rank 4), and the search did so in 17 of 17, but only because it is that search. Judged by the two-ply scorer, the model matched in 9 of 33 and the winning search in only 4 of 17. The two-ply scorer is not what wins games, so I would not use agreement with it as a quality score for either player.</Callout>
+
+## What this does and does not show
+
+Every move in the winning game came from my search program. Giving an agent somewhere to compute changes what the system can do without changing the model at all. It does not show that the model can write or run that search itself. Each result is one game against one deterministic opponent.
+
+## The next experiment
+
+The harness already has what the model would need to run the search itself: a `run_python` tool, a `simulate_move` tool that plays out a move without changing the real game, and skills that load instructions on demand.
+
+<Compare title="The experiment I have not run yet" beforeLabel="Tested" afterLabel="Not tested">
+  <p slot="before">Model with <code>play_move</code> only: lost in 33. Search program alone: mated in 17.</p>
+  <p slot="after">Model with a search skill, <code>run_python</code> and <code>simulate_move</code>, choosing when to search and how deep.</p>
+</Compare>
+
+My guess is that the model wins far more often with those tools, but I have no data for that yet. I can name ways it fails just as easily: the model might write a wrong search or skip the skill (I have seen it skip a skill before), running code costs steps and tokens that a step limit or compaction could cut short, and a slow search could hit the sandbox timeout.
+
+To test it I would run a batch of games with and without the skill, with the same model and settings, and count wins, moves to mate, tokens used, and how often the model reached for the skill. A loss would still tell me something: whether the bottleneck is the model, the skill text, or the tools.
