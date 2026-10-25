@@ -1,0 +1,43 @@
+---
+interface Step { label: string; delta: number }
+interface Props { title: string; startLabel: string; start: number; steps: Step[]; endLabel: string; caption?: string; digits?: number }
+const { title, startLabel, start, steps, endLabel, caption, digits = 3 } = Astro.props;
+
+// Running total after each step; bars float from the previous total to the next.
+const bars: { label: string; from: number; to: number; kind: 'total' | 'up' | 'down' }[] = [{ label: startLabel, from: 0, to: start, kind: 'total' }];
+let run = start;
+for (const s of steps) { bars.push({ label: s.label, from: run, to: run + s.delta, kind: s.delta >= 0 ? 'up' : 'down' }); run += s.delta; }
+bars.push({ label: endLabel, from: 0, to: run, kind: 'total' });
+
+const W = 560, H = 250, L = 44, R = 10, T = 18, B = 46;
+const all = bars.flatMap((b) => [b.from, b.to]).concat(0);
+const lo = Math.min(...all), hi = Math.max(...all);
+const pad = (hi - lo) * 0.08;
+const y = (v: number) => T + ((hi + pad - v) / (hi - lo + 2 * pad)) * (H - T - B);
+const slot = (W - L - R) / bars.length, bw = slot * 0.62;
+const x = (i: number) => L + i * slot + (slot - bw) / 2;
+const fmt = (v: number, sign = false) => `${sign && v >= 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(digits)}`;
+const desc = bars.map((b) => `${b.label}: ${b.kind === 'total' ? fmt(b.to) : fmt(b.to - b.from, true)}`).join('. ');
+---
+<figure class="fig waterfall">
+  <div class="fig-title">{title}</div>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={title}>
+    <desc>{desc}</desc>
+    <line class="zero" x1={L} x2={W - R} y1={y(0)} y2={y(0)} />
+    <text class="axis" x={L - 6} y={y(0) + 4} text-anchor="end">0</text>
+    {bars.map((b, i) => {
+      const top = Math.min(y(b.from), y(b.to)), h = Math.max(Math.abs(y(b.from) - y(b.to)), 1.5);
+      const val = b.kind === 'total' ? fmt(b.to) : fmt(b.to - b.from, true);
+      const above = b.to >= b.from;
+      return (
+        <g class:list={['wf', b.kind]}>
+          <rect x={x(i)} y={top} width={bw} height={h} rx="2" />
+          {i < bars.length - 1 && <line class="link" x1={x(i) + bw} x2={x(i + 1)} y1={y(b.to)} y2={y(b.to)} />}
+          <text class="val" x={x(i) + bw / 2} y={above ? top - 5 : top + h + 12} text-anchor="middle">{val}</text>
+          <text class="lab" x={x(i) + bw / 2} y={H - B + 16} text-anchor="middle">{b.label}</text>
+        </g>
+      );
+    })}
+  </svg>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
