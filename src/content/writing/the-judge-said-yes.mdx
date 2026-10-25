@@ -1,0 +1,335 @@
+---
+title: 'The Judge Said Yes, Then Explained Why Not'
+summary: 'Grading a chart-making agent with a small local vision model: what moved the score, and how often the score itself was wrong.'
+date: 2026-10-25
+tags: [agents, llm, evaluation]
+---
+
+import Tldr from '../../components/Tldr.astro';
+import Flow from '../../components/Flow.astro';
+import Compare from '../../components/Compare.astro';
+import Callout from '../../components/Callout.astro';
+import BarChart from '../../components/BarChart.astro';
+import Waffle from '../../components/Waffle.astro';
+import Cards from '../../components/Cards.astro';
+import Waterfall from '../../components/Waterfall.astro';
+import Scatter from '../../components/Scatter.astro';
+import Slope from '../../components/Slope.astro';
+
+<Tldr>
+- For CMU's 11-768 (AI Agents) I built a validator that grades a chart-making agent's runs, with a 4-bit Qwen3-VL-30B on my home 3090 as the judge. The validator the course started us with scored below chance.
+- Most of the gain came from asking the model less: file checks for whatever a file can answer, one requirement per question, data and design asked in separate calls, and finally re-running the agent's plotting script to measure readability instead of asking about it.
+- Most prompt tweaks moved the score less than rerunning the same prompt did. My best-looking variant only looked good because a bug had hidden the agent's code from the judge.
+- The final validator scores 0.526 on the seed set, against 0.381 for the version it had to beat. Measuring readability took that family from 0.148 to 0.672. Catching wrong data is still the weak spot.
+</Tldr>
+
+The agent gets a task ("plot these salaries as a horizontal bar chart, highest at the top, 7 by 5 inches") and some CSV files. It writes matplotlib code and saves a PNG. My validator reads the task, the inputs, the agent's trajectory and the PNG, and reports errors in four families:
+
+| Family | Example |
+|---|---|
+| `execution_failure` | no figure, or the agent gave up |
+| `wrong_data` | wrong values, wrong sort, rows dropped |
+| `wrong_chart` | wrong chart type, title, axis scale, size or dpi |
+| `hard_to_read` | clipped labels, legend over the data, overlapping text |
+
+Each family is scored with the Matthews correlation (MCC) against human labels, and the four are averaged into a macro-MCC: 0 is chance, 1 is perfect. The course fixed the judge model. Everything around it was mine to design.
+
+This post follows the score from −0.043 to 0.526. Twice along the way the number itself was wrong: once because my test labels were wrong, and once because a bug had hidden the agent's code from the judge.
+
+## Worse than a coin flip
+
+On the 110 seed runs, the validator the course provides scored a macro-MCC of −0.043. Its worst habit was answering one way and explaining the other:
+
+<Compare title="The verdict and its own reason" beforeLabel="Verdict" afterLabel="Reason, same answer">
+  <p slot="before"><strong>YES</strong>: the agent crashed, ran out of turns or gave up.</p>
+  <p slot="after">"The agent successfully completed the task…"</p>
+</Compare>
+
+All 23 of its `execution_failure` false alarms look like this. The question packs several conditions into one negative question, so the model can answer "yes" to one reading while its explanation follows another, and the validator only reads the first word. A "yes" also stopped the validator early, so it never checked the other three families.
+
+## Ask the model less
+
+The first fix was to stop asking the model things a file can answer. Whether a figure exists and what dpi it was saved at are both in the PNG. So is a rough clipping test: if any non-background pixel touches the border, something is probably cut off.
+
+The second was to stop asking broad questions. My rewrite splits the task into single requirements and asks about each one:
+
+<Flow title="My first rewrite, in order" steps={[
+  'Code: does the figure exist? Does the dpi match the request? Anything touching the border?',
+  'Split the task into single requirements',
+  'Judge each requirement against the figure: met, data error or chart error',
+  'A short readability checklist on the figure',
+  'Map everything to at most one error per family',
+]} caption="Only steps 3 and 4 call the model." />
+
+The existence check alone took `execution_failure` from 0.07 to 1.0: all 12 real failures found, no false alarms. That one file check is the biggest step in the jump:
+
+<Waterfall
+  title="Baseline to first rewrite"
+  startLabel="Baseline"
+  start={-0.0427}
+  steps={[
+    { label: 'execution', delta: 0.2321 },
+    { label: 'wrong_data', delta: 0.0856 },
+    { label: 'wrong_chart', delta: 0.0703 },
+    { label: 'hard_to_read', delta: 0.0296 },
+  ]}
+  endLabel="Rewrite"
+  caption="Each step is that family's MCC change divided by four, since macro-MCC is the mean of four families. Seed set, 110 runs."
+/>
+
+Asking one requirement at a time made the judge find data errors it used to miss. It also made it find errors that were not there:
+
+<BarChart title="wrong_data on the seed set: real errors found vs false alarms" max={60} items={[
+  { label: 'Baseline: found', value: 0, note: 'of 25 real errors' },
+  { label: 'Baseline: false', value: 3 },
+  { label: 'Rewrite: found', value: 24, accent: true, note: 'of 25' },
+  { label: 'Rewrite: false', value: 54, note: 'of 73 clean runs' },
+]} />
+
+Reading those 54 false alarms, I found the judge was often right about what it saw and wrong about where to file it. In 30 of them it spotted a real design problem, like a forbidden rainbow colormap, and called it a data error. That costs twice: a false `wrong_data` plus a missed `wrong_chart`. It had a few other habits too:
+
+<Cards title="How the judge got it wrong" items={[
+  { title: 'Right problem, wrong family', value: '30 / 54', body: 'Saw the rainbow colormap or the wrong axis range and filed it as wrong data.' },
+  { title: '"Cannot verify" counted as an error', value: '20 / 100', body: 'Of the 100 data and chart errors it reported, 20 had a reason saying the requirement could not be checked from the image, like dpi or size in inches. It once claimed a figure was saved at 120 dpi; the file said 100.' },
+  { title: 'Verdict contradicts the reason', body: 'A data error whose own reason confirmed the value was right.' },
+  { title: 'Invented evidence', body: 'A title "typo" quoting the same word twice. Swapped line colours on a chart whose legend matched.', quote: '"Matplotlib" vs "Matplotlib"' },
+]} caption="Counts from the rewrite's predictions on the seed set." />
+
+The invented evidence showed up on my own test tasks too. One task asked the agent to label the peak of y = x·e<sup>−x/3</sup> and gave a sample label to show the format: "for example Peak: 2.50 at x=4.5". Those sample numbers are not the real peak. The curve peaks at x = 3, where y = 3/e ≈ 1.10, and the agent labelled exactly that:
+
+<Compare title="The judge took the example as the answer" beforeLabel="The figure: correct, 3/e ≈ 1.10" afterLabel="The judge's data verdict">
+  <div slot="before"><img src="/media/hw2/peak-annotation.jpg" alt="A curve rising to a peak near x = 3 and decaying, with a red dot on the peak and the annotation 'Peak: 1.10 at x=3.0'." loading="lazy" /></div>
+  <p slot="after">"The peak value shown is 1.10 at x=3.0, but the correct peak should be approximately 2.50 at x=3.0."</p>
+</Compare>
+
+The judge read the correct label off the chart, kept the agent's x=3.0, and then claimed the value should be 2.50, the number from the format sample in the instructions.
+
+The "cannot verify" habit had a direct fix, so a second round of changes added it: an explicit "cannot tell" answer that counts as no error, and a figure-size check in code. That round also took requirements from the task's prose, not just its bullet list. I call the result Round 1. It scored 0.381 against the first rewrite's 0.375, and it is the version every later experiment had to beat.
+
+Readability got no fix like that, and it stayed the weakest family until the very last change in this post. Of the 39 readability errors in the seed set, the validator caught 3, all of them from the border-pixel test; the judge's checklist added none.
+
+## Code has its own blind spot
+
+For the course I also packaged five of my own tasks for [Harbor](https://github.com/harbor-framework/harbor), which needs a verifier per task written in plain code, with no model. Mine read the numbers the agent saved next to the plot. Then I tried to fool them with mutants: solutions I broke on purpose.
+
+<Compare title="Same numbers, different chart" beforeLabel="Correct: log-log axes · score 1.0" afterLabel="Mutant: linear axes · score 1.0">
+  <div slot="before"><img src="/media/hw2/loglog-oracle.jpg" alt="A power-law fit drawn on log-log axes, as the task requires, with the slope annotated as 1.50." loading="lazy" /></div>
+  <div slot="after"><img src="/media/hw2/loglog-linear-mutant.jpg" alt="The same data and the same slope annotation drawn on linear axes, so the points bunch up near the origin." loading="lazy" /></div>
+</Compare>
+
+A mutant with the wrong exponent (y = 3x<sup>1.4</sup> instead of 1.5) scored 0, so the number checks work. The linear-axes mutant has every number right and the wrong picture, and it scored a perfect 1.0. So did a mutant with 2-point text. Code can check what was computed, but checking what the reader sees takes something that looks at the image. So the vision judge stays, and I needed a way to tell whether a change to it helped.
+
+## A ruler that moves
+
+I ran Round 1 twice, at temperature 0, on the same runs. It scored 0.381 and then 0.361. Nothing changed between the two, so that 0.02 is noise from the inference server itself. Which runs happen to be in the set adds more noise on top (sampling error), so I simulated how wide a 95% interval on one family's MCC is at different sample sizes:
+
+<BarChart title="How sure can one family's MCC be?" unit="" items={[
+  { label: '15 runs', value: 0.52, note: 'my own test tasks are about this size' },
+  { label: '30 runs', value: 0.36 },
+  { label: '100 runs', value: 0.20, accent: true, note: 'the seed set' },
+  { label: '200 runs', value: 0.13 },
+  { label: '400 runs', value: 0.10 },
+]} caption="Half-width of a 95% interval, ± this much, from a simulation at MCC 0.4 with 30% positives. Telling two validators apart by 0.10 needs about 470 to 600 runs; by 0.05, about 2,000." />
+
+At ±0.20 on 100 runs, the seed set cannot tell most changes apart, so before running any experiments I set a rule. I split the seed runs into two halves, taking every other run, and a change counts only if it beats Round 1 on **both** halves by more than the rerun noise. Then I tried thirteen variants:
+
+<Scatter
+  title="Thirteen variants, scored on each half of the seed set"
+  xLabel="Macro-MCC, seed half A"
+  yLabel="Macro-MCC, seed half B"
+  ref={{ x: 0.352, y: 0.409, label: 'Round 1' }}
+  margin={0.02}
+  marginLabel="beats it on both halves"
+  points={[
+    { label: 'v00 same prompt, rerun', x: 0.358, y: 0.362, named: true },
+    { label: 'v01', x: 0.318, y: 0.304 },
+    { label: 'v02 no "cannot tell"', x: 0.304, y: 0.297, named: true },
+    { label: 'v03', x: 0.345, y: 0.310 },
+    { label: 'v04', x: 0.312, y: 0.304 },
+    { label: 'v05', x: 0.300, y: 0.372 },
+    { label: 'v06 reason first', x: 0.385, y: 0.347, named: true },
+    { label: 'v07', x: 0.312, y: 0.304 },
+    { label: 'v08', x: 0.333, y: 0.396 },
+    { label: 'v09', x: 0.300, y: 0.372 },
+    { label: 'v10 two calls', x: 0.355, y: 0.410, named: true },
+    { label: 'v11 vote of 3', x: 0.298, y: 0.331, named: true },
+    { label: 'v12 two calls + trajectory', x: 0.418, y: 0.462, accent: true },
+  ]}
+  caption="Dashed lines: Round 1, the validator I was trying to beat (0.352, 0.409). Shaded: better on both halves by more than 0.02. The same prompt rerun (v00) lands 0.047 lower on half B, which is the noise you are reading against."
+/>
+
+Rewordings, a guide to the families, asking for the reason before the verdict, voting over three samples and a filter for self-contradicting answers: none of them beat Round 1 on both halves, and most did worse on both. The filter fired on only 9 verdicts across 4 runs. The clearest result was dropping "cannot tell" (v02), which lost on both halves by more than the noise.
+
+The two variants that got near the shaded corner did not reword anything. v10 asked about data and design in separate calls, and v12 also showed the data question the end of the agent's trajectory. Only v12 cleared the bar.
+
+<Callout label="A hypothesis I got wrong">I thought "cannot tell" was making the judge skip value checks, since it counts as no error. So I narrowed its wording. On the runs I was worried about, the judge had answered "met", not "cannot tell". The narrower wording only cost `wrong_chart` points.</Callout>
+
+I picked v12 after seeing its seed scores, though, so those scores flatter it. It needed a test on data it was not chosen on.
+
+## A bigger ruler, with its own bugs
+
+My own fifteen test runs decide almost nothing, so I built a bigger labelled set. I took [PandasPlotBench](https://huggingface.co/datasets/JetBrains-Research/PandasPlotBench), rendered each task's reference chart as the "correct" run, and made one mutant per family: rows dropped, a log axis where linear was asked, 3-point text, an opaque box over the data. The labels come from the mutation, so they are only right if the reference chart is.
+
+The first sign that they were not came from my own border check. It flagged 111 runs as cut off that were labelled readable, and it was right: my renderer resized figures after layout, which clipped the labels on about 32 reference charts and the mutants made from them. After I fixed the renderer, the border check flagged only 2 runs labelled readable. Then two Claude reviewer agents with different briefs went through every reference chart against the readability rules:
+
+<Waffle title="Reference charts that failed the readability rules" total={167} highlight={57} highlightLabel="failed the audit" restLabel="kept" caption="I checked each flag against the rulebook before dropping a task. Mostly matplotlib gallery demos: text boxes over data, colliding tick labels, a title drawn over another title." />
+
+That left 396 labelled runs: 110 correct, 96 `wrong_data`, 82 `wrong_chart` and 108 `hard_to_read`. The first thing it showed was what the judge cannot see:
+
+<Compare title="Two readability mutants, two outcomes" beforeLabel="Opaque box over the data · caught in 45 of 50" afterLabel="All text at 3 points · caught in 1 of 58">
+  <div slot="before"><img src="/media/hw2/synth-box-caught.jpg" alt="A two-axis line chart of density and temperature with a large grey box reading 'draft notes, do not use' covering the middle of the plot." loading="lazy" /></div>
+  <div slot="after"><img src="/media/hw2/synth-tiny-missed.jpg" alt="A sine wave chart whose title, tick labels and axis labels are so small they show only as specks." loading="lazy" /></div>
+</Compare>
+
+The judge spots a big grey box. Text shrunk to specks on an otherwise normal chart nearly always passed, and no prompt wording changed that. In a later round I also showed it each quarter of the image enlarged, and it still found only 3 of the 58. Measuring the text in code found them in the end (more on that below).
+
+The set also exposed a real bug. My validator showed the judge only the first 3,000 characters of each input file. On one task that meant the judge saw a time axis that stopped at 10, and it called a correct plot of 0 to 100 wrong. The cap cut the inputs of 8 seed runs and 212 synthetic ones, so the bug was rare on seed and common here. The final version summarizes the whole file instead.
+
+The synthetic set also gave separate calls (v10) a test on data they were not chosen on: `wrong_chart` went from 0.371 to 0.453, better on both halves. The set is no use for `wrong_data`, though. Some of its task descriptions ask for hover effects a PNG cannot show, and the cut inputs made correct plots look wrong, so I only read the other families from it.
+
+## What the judge sees
+
+Until the last round, every change that survived was about what the judge is shown or asked, and the separate calls are the clearest case. Asked about data and design together, the judge filed design problems as data errors. Asked only about design, it cannot answer "data error". On seed, v10 found 37 of the 71 chart errors where the single call found 26, with 2 false alarms either way.
+
+The trajectory changes show the same thing, through a mistake of mine. v12 gave the data question the end of the agent's trajectory, and reading its misses I found that the "trajectory" was the whole message list turned into one string, and the last 4,000 characters it showed were mostly token counts and timings. So v13 kept only the text of each message. It had the best half-A score of any variant, and I adopted it.
+
+Then I had fresh Claude agents, which had not seen my reasoning, review the report against the code and the score files. One of them found the problem. In these trajectories the agent's code is not in the message text; it sits in a separate tool-call field. v13 had removed the one thing it was meant to show, and its data judge flagged less because it saw less. v14 puts the plotting step back:
+
+| End-to-end run | Seed | Half A / B | My 15 runs |
+|---|---|---|---|
+| v12: raw message string | 0.416 | 0.399 / 0.433 | 0.298 |
+| v13: text only, code lost | 0.434 | 0.476 / 0.396 | 0.253 |
+| v14: plotting step restored | 0.415 | 0.427 / 0.402 | 0.450 |
+
+On seed, v14 ties v12. On my own tasks it is the only version that catches this one for the right reason:
+
+<Compare title="The agent's self-check and what it drew" beforeLabel="The agent's own final check" afterLabel="The figure: highest salary at the bottom">
+  <p slot="before">"✓ Bars sorted by salary (highest at top)"</p>
+  <div slot="after"><img src="/media/hw2/barh-sorted.jpg" alt="A horizontal bar chart of median salary by role. The smallest bar, 87,000, is at the top and the largest, 212,000, is at the bottom, the reverse of what the task asked for." loading="lazy" /></div>
+</Compare>
+
+The agent sorted highest first, but matplotlib's `barh` draws the first row at the bottom, so the chart came out upside down while the agent's summary said it was right. v12 and v13 missed it. v14, the first version whose data call sees the plotting code, flagged it: "The bars are sorted in ascending order (lowest at top), but the requirement is to sort highest at top". One run cannot prove that seeing the code is the reason. The final validator still uses v14's data and chart calls.
+
+Seeing the code is not enough on its own, though. In another of my tasks the agent's code hid the bottom row's tick labels with an inverted condition, `if i >= 8:  # Not bottom row`, when panels 8 to 11 are the bottom row:
+
+<Compare title="The judge saw labels that were not there" beforeLabel="The figure: bottom row has no x tick labels" afterLabel="The judge, asked again">
+  <div slot="before"><img src="/media/hw2/grid-missing-labels.jpg" alt="A 3 by 4 grid of sine plots titled 'Harmonics of sin(kx)'. The top two rows have x tick labels; the bottom row has tick marks only, because the agent's code removed its labels." loading="lazy" /></div>
+  <p slot="after">"Tick labels are visible on the left column and bottom row, and nothing is cut off or overlapping."</p>
+</Compare>
+
+In v14 only the data call sees the code, and tick labels are a design requirement, so they went to the design call, which sees only the image. In the round after v14 I showed the design call the code too. With the inverted condition right in its prompt, it still said the bottom-row labels were visible.
+
+## Measuring readability in code
+
+After v14 I tried one more fix for each weak spot, under the same both-halves rule: showing the code to the design and readability calls, the enlarged quarters, and a filter that ignores data errors reported on design requirements. None passed. A plain rerun of the design call, with nothing changed, moved the two seed halves by +0.013 and −0.024, as much as most of the effects.
+
+The filter did show something about the data judge. Some of the data errors it removed were on runs that really did have a data error, but in every such case the judge had flagged a design problem, like a colormap or a figure size, and not the real one. Those were lucky hits. So part of the data judge's seed score comes from being right for the wrong reason, and stripping the wrong reasons can lower it.
+
+The readability misses had a pattern: overlapping text, series you cannot tell apart, legends over the data. The judge passed them with or without extra evidence. Recent work points the same way. [ChartJudgeBench](https://arxiv.org/abs/2609.24210) finds that multimodal judges strongly over-predict "Accept" on charts, and VisEval checks layout overlap from the chart's element boxes instead of asking a model. Two 2026 benchmarks, DV-World and SciVisAgentBench, also split the work: deterministic checks for what code can verify, and a model judge for the rest.
+
+The validator already had what it needed to measure these instead. The agent's plotting script is in its trajectory, and the input files are in the run. So the final version, v15, re-runs that script in a throwaway folder with a timeout and reads the live figure: where every piece of text sits, how big it is and what colour, each panel's box, the legend entries, and how much data lies under a legend. Fixed rules then decide `hard_to_read`: text too small to read, overlapping or cut-off text, low contrast, a series drawn in the background colour, two legend entries that look the same, a legend or text box over the data, and overlapping panels. I set the thresholds before scoring. The measurements count only if the re-run reproduces the submitted image; otherwise the judge decides, as in v14.
+
+Of the 108 seed and authored runs with a figure, 97 re-ran and matched the submitted image pixel for pixel. The rest need scipy or seaborn, which the validator's environment lacks, or crash on the agent's own bug.
+
+<BarChart title="hard_to_read: asking the judge vs measuring the figure" unit="" max={1} items={[
+  { label: 'Seed: judge (v14)', value: 0.148, note: '3 of 39 found' },
+  { label: 'Seed: measured (v15)', value: 0.672, accent: true, note: '24 of 39 found, 1 false alarm' },
+  { label: 'Synthetic: judge', value: 0.579 },
+  { label: 'Synthetic: measured', value: 0.910, accent: true, note: '3-point text: 58 of 58' },
+]} caption="MCC. The synthetic runs have no agent code, so to test the rules on chart types they were not built on, I re-rendered those charts with the same measuring hook. Without the small-text rule, the measured synthetic score is 0.521." />
+
+The seed gain is far above the noise: swapping in only the measured `hard_to_read` moved the two halves by +0.143 and +0.118. On my own tasks it caught a legend that no judge version had:
+
+<Compare title="A legend every judge version missed" beforeLabel="The figure: legend over the East bar's label" afterLabel="v15's readability finding">
+  <div slot="before"><img src="/media/hw2/legend-over-label.jpg" alt="A stacked percentage bar chart of product mix by region. The legend sits in the lower left corner, on top of the East bar, and hides its '33.3%' label." loading="lazy" /></div>
+  <p slot="after">"text '33.3%' overlaps text 'Laptops'; text '33.3%' has almost no contrast with its background; the legend covers plotted data"</p>
+</Compare>
+
+It also flagged another agent's run of the same task, whose legend covers about 5% of the bar area. I had labelled that run readable, so it counts as a false alarm, but it is a borderline case under the rules and the measurement itself is right.
+
+v15 comes with two cautions. The validator now runs agent-written code on the grading machine. It gets a stripped environment and a 30-second timeout, but no network sandbox. And a test set full of seaborn or scipy charts would fall back to the judge more often.
+
+In the same round I gave the data judge the re-run's plotted values as text, instead of the code or next to it. It did no better. With the values instead of the code, seed `wrong_data` fell to 0.004; with both, it stayed within the noise, and on my own tasks it fell from 0.802 to 0.356. Keeping a data error only when the code-based and value-based calls agreed removed 2 of 43 false alarms. Changing the evidence left its false alarms in place, so my guess is they come from how it reads the requirements.
+
+## Where it ended up
+
+<Slope
+  title="Final validator vs Round 1, the version it had to beat"
+  fromLabel="Round 1"
+  toLabel="Final"
+  items={[
+    { label: 'Seed, 110 runs', from: 0.381, to: 0.526 },
+    { label: 'Synthetic, 396 runs', from: 0.283, to: 0.332 },
+    { label: 'My tasks, 15 runs', from: 0.398, to: 0.643 },
+  ]}
+  caption="Macro-MCC. The synthetic numbers are v14's: those runs have no agent code to re-run, so v15 falls back to the same judge there. That score averages the three families the set has, including a wrong_data score that means little there; none of its runs is an execution failure."
+/>
+
+On seed, the final validator beats Round 1 on both halves (0.528 and 0.523 against 0.352 and 0.409). On the synthetic set, which played no part in choosing the design, v14 is ahead on both halves and finds 72 of the 82 chart errors, against 53 before. The waterfall below picks up where the first one ended, at the first rewrite's 0.375, so it covers every later round together:
+
+<Waterfall
+  title="First rewrite to final"
+  startLabel="Rewrite"
+  start={0.3749}
+  steps={[
+    { label: 'wrong_data', delta: -0.0450 },
+    { label: 'wrong_chart', delta: 0.0655 },
+    { label: 'hard_to_read', delta: 0.1310 },
+  ]}
+  endLabel="Final"
+  caption="Same format as the first waterfall, from the final end-to-end run. execution_failure stays at 1.0. The same chart code scored wrong_chart 0.430 in v14's run and 0.375 in this one; a plain rerun scored 0.407, so the dip is run-to-run noise."
+/>
+
+Two changes carry it. Separate calls took `wrong_chart` from 0.113 in the first rewrite to 0.430 in v14's run, and measuring the figure took `hard_to_read` from 0.148 to 0.672, the largest single gain in the project. `wrong_data` went the other way. The data call finds 17 of the 25 real errors (the first rewrite found 24) but still flags 43 of 73 clean runs, often for a wrong title or colormap that it files as data. Separate calls reduced the family confusion without removing it.
+
+I am not reading the rise on my own tasks as evidence. v13 took the same 15 runs down to 0.253. Ten of them have a figure, so one verdict moves a family by 0.2 to 0.4. The seed and synthetic sets are the evidence I trust; the small set is for reading run by run.
+
+## What I would tell the next person
+
+1. Read the judge's reasons, not just its verdicts. The baseline's reasons contradicted its verdicts in all 23 of its false "agent failed" alarms, and my final judge still gets some data errors right for the wrong reason.
+2. Anything code can measure, measure. For me that started with the PNG file and ended with re-running the agent's own plotting script.
+3. Rerun the same thing twice before you measure a change, and set the adoption rule before you see results.
+4. Check the winner on data it was not picked on, and check that data's labels. My test set was wrong before my validator was.
+5. Print exactly what the judge receives. My best-looking variant had lost the agent's code.
+
+## References
+
+Papers I read while building and checking the validator. Some shaped a choice, like the "cannot tell" option. Others I found afterwards, and they backed up something already built, like the border check. Near the end I searched 2026 work specifically, and that search pointed me to measuring readability in code. Those papers are marked 2026 below.
+
+### Measure in code, ask the model the rest
+- Meng et al., [DV-World: Benchmarking Data Visualization Agents in Real-World Scenarios](https://arxiv.org/abs/2604.25914) (2026). Checks numbers by aligning table values and leaves the visual side to a rubric-based model judge.
+- Ai et al., [SciVisAgentBench: A Benchmark for Evaluating Scientific Data Analysis and Visualization Agents](https://arxiv.org/abs/2603.29139) (2026). Pairs an LLM judge with deterministic evaluators: image metrics, code checkers and rule-based verifiers.
+- Chen et al., [VisEval: A Benchmark for Data Visualization in the Era of Large Language Models](https://arxiv.org/abs/2407.00981) (2024). Checks chart validity, legality and readability, measuring layout from the rendered chart instead of asking a vision model about it, which is what my final readability checks do.
+- Yang et al., [ChartMimic: Evaluating LMM's Cross-Modal Reasoning Capability via Chart-to-Code Generation](https://arxiv.org/abs/2406.09961) (2024). Scores charts from the code that drew them as well as from the picture.
+
+### One requirement per question
+- Qin et al., [InFoBench: Evaluating Instruction Following Ability in Large Language Models](https://arxiv.org/abs/2401.03601) (2024). Splits an instruction into yes/no requirements.
+- Cook et al., [TICKing All the Boxes: Generated Checklists Improve LLM Evaluation and Generation](https://arxiv.org/abs/2410.03608) (2024). Has a model write the checklist, then grades against it.
+- Cho et al., [Davidsonian Scene Graph: Improving Reliability in Fine-grained Evaluation for Text-to-Image Generation](https://arxiv.org/abs/2310.18235) (2023). Atomic questions, and parent questions that gate their children.
+
+### Letting the judge say "cannot tell"
+- Jung et al., [Trust or Escalate: LLM Judges with Provable Guarantees for Human Agreement](https://arxiv.org/abs/2407.18370) (2024). A judge that can abstain instead of guessing.
+
+### Don't trust the agent's word, or the judge's
+- Sanayei et al., [Evidence-First Agentic Verification](https://arxiv.org/abs/2610.17724) (2026). A verifier that checks each claim against its source before relying on it, including an agent's own reports of success, like the barh self-check above.
+- Jin and Chen, [Are LLMs Reliable Code Reviewers? Systematic Overcorrection in Requirement Conformance Judgement](https://arxiv.org/abs/2603.00539) (2026). LLMs often call correct code non-compliant with its requirements, and more detailed prompts make it worse. My data judge's false alarms on clean runs look like the same habit.
+
+### Where vision judges are weak
+- Wu et al., [ChartJudgeBench: Evaluating LMM Judges for Chart-to-Code Generation](https://arxiv.org/abs/2609.24210) (2026). Multimodal judges of charts lean strongly towards "Accept", one reason I stopped asking mine about readability.
+- Shi et al., [Are VLMs Seeing or Just Saying? Uncovering the Illusion of Visual Re-examination](https://arxiv.org/abs/2605.15864) (2026). When a model like Qwen3-VL says it is checking the image again, it mostly is not. A second look has to be a new question.
+- Chen et al., [MLLM-as-a-Judge: Assessing Multimodal LLM-as-a-Judge with Vision-Language Benchmark](https://arxiv.org/abs/2402.04788) (2024). Vision-language judges come close to people when comparing two outputs and drift away when asked for scores.
+- Rahmanzadehgervi et al., [Vision language models are blind: Failing to translate detailed visual features into words](https://arxiv.org/abs/2407.06581) (2024). Simple visual tasks that strong VLMs fail, close to my 3-point text and missing tick labels.
+
+### Noise, voting and small samples
+- Kumar et al., [All Verdicts are Not Equal: Rethinking LLM Judge Reliability](https://arxiv.org/abs/2610.12083) (2026). Judge verdicts change across identical runs at temperature 0, as my 0.381 and 0.361 did.
+- Kohli, [Nine Judges, Two Effective Votes: Correlated Errors Undermine LLM Evaluation Panels](https://arxiv.org/abs/2605.29800) (2026). Judges make the same mistakes on the same items, so nine of them are worth about two independent votes. My v11 voted over three samples from a single model, whose errors I would expect to overlap even more.
+- Haldar and Hockenmaier, [Rating Roulette: Self-Inconsistency in LLM-As-A-Judge Frameworks](https://arxiv.org/abs/2510.27106) (2025). The same judge disagrees with itself across runs.
+- Itaya et al., [Asymptotic Properties of Matthews Correlation Coefficient](https://arxiv.org/abs/2405.12622) (2024). Confidence intervals for one MCC and for the gap between two validators scored on the same runs, which is the comparison I kept making.
+
+### Checking the checker
+- Delcourt et al., [Breaking Models to Test the Judge: A Mutation Testing Approach for Semantic Evaluators of Domain Class Diagrams](https://arxiv.org/abs/2608.14315) (2026). Injects known defects to test a judge, the same idea as my synthetic mutants, and finds it ranks judges much as manual review does.
+- Shankar et al., [Who Validates the Validators? Aligning LLM-Assisted Evaluation of LLM Outputs with Human Preferences](https://arxiv.org/abs/2404.12272) (2024). Criteria drift: the rubric bends to fit the outputs you happened to see. One reason to test the winner on data it was not picked on.
+
+### Data and model
+- Galimzyanov et al., [Drawing Pandas: A Benchmark for LLMs in Generating Plotting Code](https://arxiv.org/abs/2412.02764) (2024). PandasPlotBench, the source of my synthetic set (Apache-2.0).
+- Bai et al., [Qwen3-VL Technical Report](https://arxiv.org/abs/2511.21631) (2025). The judge model family; I ran the 30B-A3B mixture-of-experts variant.

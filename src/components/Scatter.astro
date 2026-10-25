@@ -1,0 +1,50 @@
+---
+interface Point { label: string; x: number; y: number; accent?: boolean; named?: boolean }
+interface Props {
+  title: string; points: Point[]; xLabel: string; yLabel: string;
+  ref?: { x: number; y: number; label: string }; margin?: number; marginLabel?: string; caption?: string;
+}
+const { title, points, xLabel, yLabel, ref, margin = 0, marginLabel = '', caption } = Astro.props;
+
+const W = 480, H = 380, L = 50, R = 16, T = 14, B = 42;
+const vals = points.flatMap((p) => [p.x, p.y]).concat(ref ? [ref.x, ref.y, ref.x + margin, ref.y + margin] : []);
+const lo = Math.floor(Math.min(...vals) * 20) / 20, hi = Math.ceil(Math.max(...vals) * 20) / 20;
+const x = (v: number) => L + ((v - lo) / (hi - lo)) * (W - L - R);
+const y = (v: number) => H - B - ((v - lo) / (hi - lo)) * (H - T - B);
+const ticks = Array.from({ length: Math.round((hi - lo) / 0.05) + 1 }, (_, i) => +(lo + i * 0.05).toFixed(2));
+const desc = points.map((p) => `${p.label}: ${p.x.toFixed(3)}, ${p.y.toFixed(3)}`).join('. ');
+---
+<figure class="fig scatter">
+  <div class="fig-title">{title}</div>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={title}>
+    <desc>{desc}</desc>
+    {ticks.map((t) => (
+      <g class="tick">
+        <line x1={x(t)} x2={x(t)} y1={T} y2={H - B} /><line x1={L} x2={W - R} y1={y(t)} y2={y(t)} />
+        <text x={x(t)} y={H - B + 14} text-anchor="middle">{t.toFixed(2)}</text>
+        <text x={L - 6} y={y(t) + 4} text-anchor="end">{t.toFixed(2)}</text>
+      </g>
+    ))}
+    {ref && margin > 0 && (
+      <g class="win">
+        <rect x={x(ref.x + margin)} y={T} width={W - R - x(ref.x + margin)} height={y(ref.y + margin) - T} />
+        <text x={W - R - 6} y={T + 14} text-anchor="end">{marginLabel}</text>
+      </g>
+    )}
+    {ref && (
+      <g class="ref">
+        <line x1={x(ref.x)} x2={x(ref.x)} y1={T} y2={H - B} /><line x1={L} x2={W - R} y1={y(ref.y)} y2={y(ref.y)} />
+      </g>
+    )}
+    <line class="diag" x1={x(lo)} y1={y(lo)} x2={x(hi)} y2={y(hi)} />
+    {points.map((p) => (
+      <g class:list={['pt', { accent: p.accent }]}>
+        <circle cx={x(p.x)} cy={y(p.y)} r={p.accent ? 5.5 : 4} />
+        {(p.named || p.accent) && <text x={x(p.x) + 8} y={y(p.y) + 4}>{p.label}</text>}
+      </g>
+    ))}
+    <text class="axis" x={(L + W - R) / 2} y={H - 6} text-anchor="middle">{xLabel}</text>
+    <text class="axis" x="12" y={(T + H - B) / 2} text-anchor="middle" transform={`rotate(-90 12 ${(T + H - B) / 2})`}>{yLabel}</text>
+  </svg>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

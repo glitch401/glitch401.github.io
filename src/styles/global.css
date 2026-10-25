@@ -207,3 +207,32 @@ ol.steps .n { display: inline-block; width: 1.2rem; height: 1.2rem; line-height:
 .videopair video { width: 100%; height: auto; aspect-ratio: 604 / 640; border-radius: 6px; background: #000; display: block; }
 .videopair .note { font-size: .8rem; margin-top: .35rem; line-height: 1.4; }
 @media (max-width: 520px) { .videopair .clips { grid-template-columns: 1fr; } }
+
+/* Waterfall, scatter, cards, image compare */
+.waterfall svg, .scatter svg { width: 100%; height: auto; font: 11px var(--sans); }
+.waterfall .zero { stroke: var(--muted); }
+.waterfall .axis, .waterfall .lab { fill: var(--muted); }
+.waterfall .val { fill: var(--fg); font-family: var(--mono); font-size: 10.5px; }
+.waterfall .wf rect { fill: var(--muted); }
+.waterfall .wf.up rect { fill: var(--link); }
+.waterfall .wf.down rect { fill: var(--muted); opacity: .55; }
+.waterfall .link { stroke: var(--muted); stroke-dasharray: 2 2; }
+.scatter { max-width: 32rem; }
+.scatter .tick line { stroke: var(--rule); }
+.scatter .tick text, .scatter .axis { fill: var(--muted); }
+.scatter .diag { stroke: var(--muted); stroke-dasharray: 2 4; }
+.scatter .ref line { stroke: var(--fg); stroke-dasharray: 5 3; opacity: .6; }
+.scatter .win rect { fill: color-mix(in srgb, var(--link) 12%, transparent); }
+.scatter .win text { fill: var(--link); font-size: 10px; }
+.scatter .pt circle { fill: var(--muted); opacity: .8; }
+.scatter .pt text { fill: var(--fg); font-size: 10.5px; }
+.scatter .pt.accent circle { fill: var(--link); opacity: 1; }
+.scatter .pt.accent text { fill: var(--link); font-weight: 700; }
+.cards ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: .7rem; }
+.cards li { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: .6rem .75rem; font-size: .82rem; line-height: 1.4; }
+.cards .head { display: flex; justify-content: space-between; gap: .5rem; align-items: baseline; }
+.cards .name { font-weight: 700; }
+.cards .value { font: 700 .85rem var(--mono); color: var(--link); white-space: nowrap; }
+.cards p { margin: .35rem 0; }
+.cards q { display: block; font: .75rem/1.4 var(--mono); color: var(--muted); }
+.compare img { width: 100%; height: auto; border-radius: 4px; display: block; background: #fff; }

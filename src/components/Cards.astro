@@ -1,0 +1,18 @@
+---
+interface Card { title: string; value?: string; body: string; quote?: string }
+interface Props { title: string; items: Card[]; caption?: string }
+const { title, items, caption } = Astro.props;
+---
+<figure class="fig cards">
+  <div class="fig-title">{title}</div>
+  <ul role="list">
+    {items.map((c) => (
+      <li>
+        <div class="head"><span class="name">{c.title}</span>{c.value && <span class="value">{c.value}</span>}</div>
+        <p>{c.body}</p>
+        {c.quote && <q>{c.quote}</q>}
+      </li>
+    ))}
+  </ul>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
