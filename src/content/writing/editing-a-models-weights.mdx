@@ -1,0 +1,196 @@
+---
+title: "Editing a Model's Weights for $10"
+summary: 'Claude Fable fixed a stuck car and shortened two language models by writing weights directly. What held up on unseen tests, and what a simple script matched.'
+date: 2026-11-08
+tags: [llm, research, evaluation]
+---
+
+import Tldr from '../../components/Tldr.astro';
+import BarChart from '../../components/BarChart.astro';
+import Dumbbell from '../../components/Dumbbell.astro';
+import Callout from '../../components/Callout.astro';
+import VideoTabs from '../../components/VideoTabs.astro';
+import DoseSlider from '../../components/DoseSlider.astro';
+
+<Tldr>
+- MIT researchers showed GPT-6 Astra repairing neural networks by editing their weights (the numbers a network learns in training) directly, with no retraining. I tried the same with Claude Fable 5.1.
+- On a language model, Qwen3.5-9B, a $10.13 Fable run made answers 10.5% shorter on 244 math problems it never saw (95% confidence interval, the plausible range: 6.3 to 14.6), with no measurable accuracy change (+0.41 percentage points, 95% CI −1.64 to +2.46). A random edit cut 1.2%.
+- On the larger Qwen3.8-27B, Fable's second run cut 14.9% on 1,000 untouched problems, again with no measurable accuracy change. Its first run lost 4.5 points of accuracy, because it checked itself on the problems it had tuned on.
+- My own scripted edits cut as much or more: 13.4% on the same 9B test, 22.5 to 36.1% on other benchmarks (Fable: 9.5 to 12.4%), and 33.5% on the 27B.
+- On the physics car, Fable's edit reached the goal and passed all 60 shifted scenes. So did a two-step script. Fable's edit also replaced the car's trained controller instead of repairing it, so the car shows Fable can solve the task, but not that it can program weights.
+- The MIT post's 7.9% to 48.1% jump on a 0.8B model mostly comes from answers that finally finish. With thinking off (no long private reasoning before the answer), replications get 44 to 47% from the unedited model. Bigger models loop less, so there is less to fix.
+</Tldr>
+
+Rikiya Takehi, Jayden Teoh, Alex Zhang and Omar Khattab call this [weight-space programming](https://rikiyat.github.io/blog/weight-space-programming/). You give a model a network's raw weights, the numbers it learned in training, plus some context, and it edits them directly, without a training loop or gradient descent. Their showpiece is a car in a [Kinetix](https://github.com/FLAIROx/Kinetix) physics level. Its driver is a small network trained by reinforcement learning (the trained policy), and it never gets the car to the box. Astra changed 3.5% of the weights in one reply, and the car reached the box in all 1,024 episodes.
+
+I wanted to see whether Fable could do it too, and whether the result would survive tests the edit never saw.
+
+## The car
+
+I replayed both published networks and matched the result: 0 of 256 episodes (separate runs of the level) for the trained policy, 256 of 256 for Astra's edit. Then I sent Fable the authors' exact prompt, with no tools and one reply. I allowed one attempt, and the script refuses to run twice, so this can't be a best of N.
+
+Fable's edit reached the box in all 1,024 episodes. The reply cost $6.34 and changed 4,837 of 171,664 weights (2.82%).
+
+<figure class="fig">
+  <div class="fig-title">One level, three networks</div>
+  <video src="/media/wsp/overlay.mp4" poster="/media/wsp/overlay.jpg" autoplay loop muted playsinline controls preload="metadata" aria-label="Three separate car runs overlaid: the trained policy stays stuck on the ramp while the Astra and Fable edits reach the box" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '6px' }}></video>
+  <figcaption>Gray is the trained policy, green is Astra and purple is Fable. Astra and Fable take almost the same route. These are three separate runs drawn in one frame (seed 0), so the cars do not interact. The video stops at step 130 of 256, because the trained policy stays stuck after the edits finish. Physics: Kinetix. Networks: RikiyaT/lm_understand-logs (CC BY 4.0).</figcaption>
+</figure>
+
+The result is smaller than it looks, for two reasons. The physics is deterministic and the episodes averaged exactly 74 steps, so 1,024 wins are close to one route repeated 1,024 times.
+
+The 2.82% also undersells the change. One of Fable's edits zeroes the whole output layer, then wires a single hand-built unit into it. The trained network no longer decides what the car does. Fable wrote a small controller directly in the weights. I find that clever, but it replaces the trained policy instead of repairing it.
+
+## Trying to break it
+
+So I moved things. Before running anything I fixed a grid of 60 scenes that shift the car, the ramp and the box, with 8 episodes per scene, and a scene passes if at least half reach the box. As a control I added a script that never looks at the scene: reverse for 28 steps, then drive left. I tuned that 28 on the published level only.
+
+<BarChart title="Shifted scenes passed, out of 60" max={60} items={[
+  { label: 'Trained policy', value: 0 },
+  { label: "Astra's edit", value: 55 },
+  { label: "Fable's edit", value: 60, accent: true },
+  { label: 'Two-step script', value: 60 },
+]} caption="All five Astra failures are in one row: ramp moved 0.30 left, box unmoved. In that row the outcome flips with small changes in the car's start, from 0 of 8 to 8 of 8 and back." />
+
+<VideoTabs
+  title="All 60 scenes, one episode each. Pick a network."
+  tabs={[
+    { label: "Fable's edit", src: '/media/wsp/stress-fable.mp4', poster: '/media/wsp/stress-fable.jpg', note: '60 of 60 scenes pass.' },
+    { label: 'Two-step script', src: '/media/wsp/stress-schedule.mp4', poster: '/media/wsp/stress-schedule.jpg', note: '60 of 60. It never reads the scene.' },
+    { label: "Astra's edit", src: '/media/wsp/stress-astra.mp4', poster: '/media/wsp/stress-astra.jpg', note: '55 of 60. The failures are the top row.' },
+    { label: 'Trained policy', src: '/media/wsp/stress-ppo.mp4', poster: '/media/wsp/stress-ppo.jpg', note: '0 of 60.' },
+  ]}
+  caption="Columns shift the car's start, rows shift the ramp and the box. A green border means that filmed episode reached the box, and the n/8 label is the scored result over 8 episodes. Blank cells are scenes the plan excluded before any run."
+/>
+
+Fable's edit held up everywhere. So did a script with no perception at all, which means these shifts are too easy to test whether a network adapts to what it sees. That test needs scenes where no fixed schedule works, and I haven't built those.
+
+One attempt also says little about how often this works. [OpenWSP](https://github.com/openwsp/openwsp), an independent replication, reran Astra on the same prompt and got 0 of 1,024.
+
+## The language model
+
+The MIT post's other big result fixes a small Qwen model that repeats itself until it hits the token limit. A token is roughly three quarters of a word, and the limit (the cap) is how many the model may write before it is cut off. Subtracting one direction, a pattern in the model's internal activity, from 131,072 weights took the model from 7.9% to 48.1% on MATH-500, a standard set of 500 competition math problems.
+
+Replications have since found where most of that jump comes from. With thinking on (Qwen's mode where the model writes out long private reasoning before it answers) and a 32,768-token cap, the unedited model runs out of tokens on most answers, and Qwen's own [model card](https://huggingface.co/Qwen/Qwen3.5-0.8B) says the 0.8B "is more prone to entering thinking loops compared to other Qwen3.5 models." With thinking off, the unedited model already scores 44 to 47%. So most of the gain is answers that finally finish.
+
+<BarChart title="Qwen3.5-0.8B on MATH-500" unit="%" max={60} items={[
+  { label: 'Unedited, thinking on', value: 7.9, note: 'the original post' },
+  { label: "Astra's edit, thinking on", value: 48.1, accent: true, note: 'the original post' },
+  { label: 'Unedited, thinking off', value: 44.2, note: 'Zhang et al. replication' },
+  { label: 'Unedited, thinking off', value: 45.2, note: 'shapor replication' },
+  { label: 'Unedited, thinking off', value: 46.8, note: 'OpenWSP replication' },
+]} caption="Each replication ran its own pipeline. Sources: rikiyat.github.io, github.com/ZhangYiqun018/rethinking-weight-space-programming, github.com/shapor/weight-space-experiments, github.com/openwsp/openwsp. They disagree on how much the edit adds beyond turning thinking off: about nothing in shapor's runs, 6.4 points in Zhang's." />
+
+I started by scripting that recipe on the larger Qwen3.5-9B, at home on a 3090. It did nothing. The base model hit the token cap on 27.0% of answers, and every edit strength I tried landed between 27.3% and 30.9%, while a random direction landed at 28.9%. The loop direction's stability across pairs of examples was 0.202, against about 0.192 for pure noise. In this model I couldn't find that direction at all.
+
+That fits what others measured. Larger models loop less: when always picking the most likely next token, one model family looped on 76% of hard problems at 1.5B and 37% at 32B ([Pipis et al.](https://arxiv.org/html/2512.12895)). And steering, shifting a model's internal state along a direction, is unreliable "when the target behavior is not represented by a coherent direction" ([Braun et al.](https://arxiv.org/abs/2505.22637)). In the 9B, looping didn't have one. Answer length, as the next part shows, did.
+
+<BarChart title="Answers that hit the token cap, thinking on, unedited model" unit="%" max={100} items={[
+  { label: 'Qwen3.5-0.8B', value: 88.5, note: '85 of 96 practice answers, 32,768-token cap (original post)' },
+  { label: 'Qwen3.5-9B', value: 23.4, note: '64 problems, two samples each, 16k cap (my first check)' },
+  { label: 'Qwen3.8-27B', value: 2.0, note: 'MATH-500, 16k cap; exact repetition in at most 0.3%' },
+]} caption="Caps and problem sets differ, so read the order, not the exact gaps. On the 27B, capped answers are mostly second-guessing, about 30 'Wait' or 'Actually' markers each, which is the verbosity behavior the edits below reduce." />
+
+Length was a better target. With thinking off, a 4,096-token cap and MATH-500, the model scores 90.2% and its median answer runs 930 tokens. After several edits that did nothing, I got a scripted edit to work: a constant shift through six neurons at layer 18. (A layer is one of the model's stacked processing stages.)
+
+Then I gave Fable the weights, practice problems and a budget of 10 model runs. I told it nothing about my direction or my neurons. It never saw the 244 test problems.
+
+## What Fable did
+
+Fable started by reading the model's answers. In its first batch of 128, the 19 answers that hit the cap carried 41% of all tokens and scored 16%. Those answers started out as tidy numbered steps, then drifted into a scratchpad of "Wait" and "Actually".
+
+It built two directions from the model's own activations (its internal signals while it reads text), one for that drift and one for the model's response to being asked to be brief. To deliver them it picked "carrier" neurons whose activation barely changes between texts, so changing a neuron's output column acts like adding a constant to the model's internal state. It then measured the result on the version before last, and the shift it delivered lined up with the plan (cosine 0.96 to 1.00 at the edited layers, where 1.00 means the same direction).
+
+Its early numbers were better than its final ones. An early version looked 7 points more accurate on the problems it was built from. The final version, on 128 practice problems it hadn't used, scored +0.0 points (standard error 2.0) with 11.7% fewer tokens. On that same check, wrong answers that hit the cap fell from 28 to 19, while wrong answers that finished normally rose from 2 to 10. Fable lowered the strength of the brevity direction because of those slips, and then its budget ran out.
+
+The final edit changes 3 of 12,288 columns at each of layers 18, 20, 22, 24 and 26. That is 61,440 weights, and it shifts each matrix by 5 to 14% of its overall size (relative Frobenius norm). The run took 62 turns and cost $10.13.
+
+## What held up
+
+<BarChart title="Fewer tokens than the base model, on 244 unseen MATH-500 problems" unit="%" max={20} items={[
+  { label: 'Random control', value: 1.2, note: 'accuracy +0.00 points' },
+  { label: "Fable's edit", value: 10.5, accent: true, note: 'accuracy +0.41 points (95% CI −1.64 to +2.46)' },
+  { label: 'Scripted edit', value: 13.4, note: 'accuracy −0.61 points (95% CI −3.06 to +1.83)' },
+]} caption="Two samples per problem, 488 in all, each compared with the base model's answer to the same problem. Token intervals below come from resampling problems." />
+
+A 95% CI (confidence interval) is the range the true value plausibly sits in, given how many problems I tested. When it includes zero, the test can't tell the effect from noise. Fable's token cut beats the random control by 5.2 to 13.7 points (95% CI), so the edit has a real effect. Accuracy showed no measurable change. Its interval doesn't rule out a loss of up to about 1.6 points, and I didn't decide in advance how small a loss would count as no loss, so I won't call accuracy preserved.
+
+Fable and the script can't be separated on this test: the script's extra cut has a 95% CI of −2.5 to +8.1 points. Runaway answers may have dropped, but I can't claim it. Capped samples went from 45 to 36, and the 95% CI on that drop runs from −0.6 to +4.3 points.
+
+
+<figure class="fig">
+  <div class="fig-title">Same problem, before and after Fable's edit</div>
+  <video src="/media/wsp/text.mp4" poster="/media/wsp/text.jpg" autoplay loop muted playsinline controls preload="metadata" aria-label="Side by side text: the base model runs to the 4,096 token cap with no answer, the edited model answers correctly in 606 tokens" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '6px' }}></video>
+  <figcaption>The base model uses all 4,096 tokens and gives no answer. The edited model gives the right one in 606. I chose this sample by rule: the biggest token drop among samples that hit the cap before and were correct after, so it is the best case of the 488. The edited answer's last step has a small slip and still lands on the right result. Across all samples, 21 stopped hitting the cap (15 of them correct) and 12 newly hit it. Text pacing is approximate.</figcaption>
+</figure>
+
+## Where the script wins
+
+Fable built its edit on math problems, and the gap to the script opens up on other benchmarks.
+
+<Dumbbell
+  title="Tokens cut, by benchmark"
+  fromLabel="Fable's edit"
+  toLabel="Scripted edit"
+  unit="%"
+  items={[
+    { label: 'MATH-500', from: 10.5, to: 13.4 },
+    { label: 'GSM8K', from: 12.4, to: 36.1 },
+    { label: 'IFEval', from: 10.2, to: 33.5 },
+    { label: 'MMLU-Pro', from: 9.5, to: 22.5 },
+  ]}
+  caption="MATH-500 uses two samples per problem. The others use one sample, on 200 to 300 problems each."
+/>
+
+Accuracy on those benchmarks moved 0.0, −1.0 and −3.0 points for Fable, and +1.3, +4.5 and +2.0 for the script. All of those intervals include zero, but MMLU-Pro leans the wrong way for Fable (95% CI −7.0 to +1.0, 23 answers lost against 14 gained). My untested guess is that the script's single direction is a more general length knob than Fable's two math-shaped ones.
+
+## The same test on a 27B
+
+I ported the setup to Qwen3.8-27B on an H200 cluster, with the same protocol: thinking off, a 4,096-token cap, and each answer compared with the unedited model's answer to the same problem. The 27B is as wordy as the 9B: 88.7% accuracy, 10.5% of answers capped, median 984 tokens. My scripted edit carried over to layer 36.
+
+Fable got two runs. The first edited four matrices at layers 24 to 48, and its own check came back clean. The independent check disagreed:
+
+| Fable run | What Fable's own check said | Independent check, 244 MATH-500 problems |
+|---|---|---|
+| 1 ($9.07) | 17% fewer tokens, 0.0 points | 23.2% fewer tokens, −4.51 points (95% CI −6.79 to −2.23) |
+| 2 ($8.98, sealed check set) | 19.4% fewer tokens, +2.6 points | 14.8% fewer tokens, −0.31 points (95% CI −2.00 to +1.39) |
+
+Run 1 chose the strength of its edit on the same problems it then reported, so its check flattered it. The loss held up on 500 fresh MATH problems (−3.40 points). For run 2 the prompt sealed off 96 problems for the final report only. Its edit, which switches off "reconsider and verify" neurons across layers 24 to 57, held on every benchmark I ran.
+
+Strength is the main knob for the scripted edit, and it has a cliff. Drag the slider:
+
+<DoseSlider
+  title="Scripted edit on the 27B: strength vs tokens and accuracy"
+  start={1}
+  steps={[
+    { scale: '0.25', acc: -0.39, tokens: 13.4, ci: '−2.94 to +2.16' },
+    { scale: '0.35', acc: 0.39, tokens: 17.0, ci: '−2.78 to +3.56' },
+    { scale: '0.5', acc: 2.73, tokens: 25.5, ci: '−0.40 to +5.87' },
+    { scale: '0.7', acc: 1.95, tokens: 29.7, ci: '−1.00 to +4.91' },
+    { scale: '1.0', acc: -3.91, tokens: 39.7, ci: '−8.06 to +0.25' },
+    { scale: '1.4', acc: -17.58, tokens: 59.8, ci: '−23.59 to −11.57' },
+  ]}
+  caption="Shift at layer 36, measured on 128 practice problems used to choose the strength (two samples each, thinking off). Past 1.0 the model starts cutting answers short. Strength 0.7 later held on the 1,000 untouched problems below."
+/>
+
+On 1,000 MATH problems that no choice ever touched, here is where the edits landed:
+
+<BarChart title="Fewer tokens on 1,000 untouched problems, Qwen3.8-27B, thinking off" unit="%" max={60} items={[
+  { label: "Fable's run 2", value: 14.9, accent: true, note: 'accuracy +1.10 points (95% CI −0.48 to +2.68)' },
+  { label: 'Scripted, strength 0.7', value: 33.5, note: 'accuracy +0.70 points (95% CI −0.90 to +2.30)' },
+  { label: 'Scripted, three layers', value: 38.1, note: 'accuracy +0.50 points (95% CI −1.15 to +2.15)' },
+  { label: 'Fable 2 + scripted 0.7', value: 47.0, note: 'accuracy −1.20 points (95% CI −3.00 to +0.60)' },
+  { label: 'Fable 2 + three layers', value: 50.7, note: 'accuracy −3.20 points (95% CI −5.15 to −1.25)' },
+]} caption="One sample per problem, paired against the unedited model. The strongest combinations cross the accuracy edge. On the problems Fable's edit was chosen on, the combinations looked accuracy-neutral." />
+
+The pattern from the 9B holds. Fable finds a real edit, and on untouched problems my best scripted edits cut two to three times as much, as they did on the 9B's other benchmarks. What's new is the checking. Fable's estimate was only honest once it couldn't tune on the problems it reported. The scripted edit at strength 0.35 cut 17.0% on 500 fresh problems with accuracy unchanged, and that is the result I report for the 27B. Two more Fable runs have finished, and their independent checks are still running.
+
+<Callout>
+None of this shows that Fable improves accuracy, fixes runaway answers, or beats a human-written edit. It is one Fable run on the 9B and two finished runs on the 27B, so it says little yet about how often this works.
+</Callout>
+
+## What I'd take from it
+
+On the 9B, a model read weights well enough to diagnose a real behavior and change it, without being told where to look. For $10 it reached the same order of effect on math that took me several failed attempts, through a different mechanism.
+
+The controls taught me the most, though. The two-step script changed what the car result means, and the random edit showed the token cut was real. Problems held back from the edit kept an early +7 points from becoming the headline, and on the 27B a sealed check set was the difference between a 4.5-point loss and a pass. I would run all of these before believing the next video of a repaired network, mine included.

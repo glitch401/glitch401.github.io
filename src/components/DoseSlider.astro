@@ -1,0 +1,51 @@
+---
+interface Step { scale: string; acc: number; tokens: number; ci: string }
+interface Props { title: string; steps: Step[]; start?: number; caption?: string }
+const { title, steps, start = 0, caption } = Astro.props;
+const maxTok = Math.max(...steps.map((s) => s.tokens));
+const maxAcc = Math.max(...steps.map((s) => Math.abs(s.acc)));
+const s0 = steps[start];
+---
+<figure class="fig dose" data-steps={JSON.stringify(steps)} data-maxtok={maxTok} data-maxacc={maxAcc}>
+  <div class="fig-title">{title}</div>
+  <label>Edit strength <input type="range" min="0" max={steps.length - 1} value={start} step="1" aria-label="Edit strength" /> <output data-scale>{s0.scale}</output></label>
+  <div class="row"><span>Fewer tokens</span><span class="bar-track"><span class="bar accent" data-tokbar style={`width:${(s0.tokens / maxTok) * 100}%`}></span></span><span class="val" data-tok>{s0.tokens}%</span></div>
+  <div class="row"><span>Accuracy change</span><span class="diverge"><span class="mid"></span><span class="bar" data-accbar></span></span><span class="val" data-acc>{s0.acc > 0 ? '+' : ''}{s0.acc} pts</span></div>
+  <div class="ci">95% CI on accuracy: <span data-ci>{s0.ci}</span></div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+<style>
+  label { display: flex; align-items: center; gap: .6rem; font-size: .85rem; margin-bottom: .8rem; }
+  input[type=range] { flex: 1; max-width: 18rem; }
+  output { font-family: var(--mono); min-width: 3rem; }
+  .row { display: grid; grid-template-columns: 8.5rem 1fr 5rem; align-items: center; gap: .6rem; font-size: .82rem; margin: .4rem 0; }
+  .val { font: .85rem var(--mono); text-align: right; }
+  .diverge { position: relative; height: .9rem; background: var(--rule); border-radius: 4px; }
+  .diverge .mid { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--fg); }
+  .diverge .bar { position: absolute; top: 0; height: 100%; }
+  .diverge .bar.down { background: #b03a2e; }
+  .ci { font-size: .78rem; color: var(--muted); }
+</style>
+<script>
+  document.querySelectorAll<HTMLElement>('figure.dose').forEach((fig) => {
+    const steps = JSON.parse(fig.dataset.steps!);
+    const maxTok = +fig.dataset.maxtok!, maxAcc = +fig.dataset.maxacc!;
+    const input = fig.querySelector<HTMLInputElement>('input')!;
+    const q = (k: string) => fig.querySelector<HTMLElement>(`[${k}]`)!;
+    const update = () => {
+      const s = steps[+input.value];
+      q('data-scale').textContent = s.scale;
+      q('data-tok').textContent = `${s.tokens}%`;
+      q('data-tokbar').style.width = `${(s.tokens / maxTok) * 100}%`;
+      q('data-acc').textContent = `${s.acc > 0 ? '+' : ''}${s.acc} pts`;
+      q('data-ci').textContent = s.ci;
+      const bar = q('data-accbar'), w = (Math.abs(s.acc) / maxAcc) * 50;
+      bar.style.width = `${w}%`;
+      bar.style.left = s.acc >= 0 ? '50%' : `${50 - w}%`;
+      bar.classList.toggle('down', s.acc < 0);
+      bar.classList.toggle('accent', s.acc >= 0);
+    };
+    input.addEventListener('input', update);
+    update();
+  });
+</script>
