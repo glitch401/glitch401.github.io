@@ -11,6 +11,7 @@ const writing = defineCollection({
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
     favourite: z.boolean().default(false),
+    image: z.string().optional(), // share image path under public/, e.g. /media/x/og.jpg
   }),
 });
 

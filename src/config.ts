@@ -17,5 +17,5 @@ export const site = {
   // 'https://buttondown.com/api/emails/embed-subscribe/<username>'. Empty hides the form.
   newsletterAction: '',
   // Google Analytics 4 measurement id (G-XXXXXXXXXX). Empty disables analytics.
-  analyticsId: '',
+  analyticsId: 'G-CDW91F1XS6',
 };
