@@ -1,0 +1,41 @@
+---
+interface Tab { label: string; src: string; poster: string; note: string }
+interface Props { title: string; tabs: Tab[]; caption?: string }
+const { title, tabs, caption } = Astro.props;
+---
+<figure class="fig videotabs">
+  <div class="fig-title">{title}</div>
+  <div class="tabs" role="tablist">
+    {tabs.map((t, i) => (
+      <button type="button" role="tab" aria-selected={i === 0 ? 'true' : 'false'} data-i={i}>{t.label}</button>
+    ))}
+  </div>
+  {tabs.map((t, i) => (
+    <div class="pane" role="tabpanel" hidden={i !== 0}>
+      <video src={t.src} poster={t.poster} autoplay={i === 0} loop muted playsinline controls preload={i === 0 ? "metadata" : "none"} aria-label={`${t.label}: ${t.note}`}></video>
+      <div class="note">{t.note}</div>
+    </div>
+  ))}
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+<style>
+  .tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .6rem; }
+  button { font: .8rem var(--sans); padding: .3rem .7rem; border: 1px solid var(--rule); border-radius: 999px; background: var(--bg); color: var(--fg); cursor: pointer; }
+  button[aria-selected='true'] { background: var(--link); border-color: var(--link); color: var(--bg); }
+  video { width: 100%; height: auto; display: block; border-radius: 6px; }
+  .note { font-size: .8rem; margin-top: .35rem; }
+</style>
+<script>
+  document.querySelectorAll<HTMLElement>('figure.videotabs').forEach((fig) => {
+    const buttons = [...fig.querySelectorAll<HTMLButtonElement>('button[role=tab]')];
+    const panes = [...fig.querySelectorAll<HTMLElement>('.pane')];
+    buttons.forEach((b, i) => b.addEventListener('click', () => {
+      panes.forEach((p, j) => {
+        p.hidden = j !== i;
+        const v = p.querySelector('video')!;
+        if (j === i) v.play().catch(() => {}); else v.pause();
+      });
+      buttons.forEach((x, j) => x.setAttribute('aria-selected', String(j === i)));
+    }));
+  });
+</script>
