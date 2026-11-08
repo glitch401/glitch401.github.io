@@ -2,12 +2,22 @@
 import '../styles/global.css';
 import { site } from '../config';
 
-interface Props { title?: string; description?: string; indexed?: boolean }
-const { title, description = site.description, indexed = false } = Astro.props;
+interface Props { title?: string; description?: string; indexed?: boolean; image?: string; published?: Date }
+const { title, description = site.description, indexed = false, image = '/og.png', published } = Astro.props;
 const fullTitle = title ? `${title} · ${site.title}` : site.title;
 const path = Astro.url.pathname;
 const canonical = new URL(path, Astro.site);
-const ogImage = new URL('/og.png', Astro.site);
+const ogImage = new URL(image, Astro.site);
+const jsonLd = published && {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description,
+  image: ogImage.href,
+  datePublished: published.toISOString(),
+  url: canonical.href,
+  author: { '@type': 'Person', name: site.title, url: Astro.site?.href },
+};
 ---
 <!doctype html>
 <html lang="en">
@@ -29,7 +39,9 @@ const ogImage = new URL('/og.png', Astro.site);
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content={published ? 'article' : 'website'} />
     <meta name="twitter:card" content="summary_large_image" />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
     <script is:inline>
       (function () {
         try {

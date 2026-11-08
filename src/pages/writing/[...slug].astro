@@ -14,7 +14,7 @@ const shared = (p: typeof post) => p.data.tags.filter((t) => post.data.tags.incl
 const related = all.filter((p) => p.id !== post.id).sort((a, b) => shared(b) - shared(a) || b.data.date.getTime() - a.data.date.getTime()).slice(0, 3);
 const { Content } = await render(post);
 ---
-<Base title={post.data.title} description={post.data.summary} indexed>
+<Base title={post.data.title} description={post.data.summary} image={post.data.image} published={post.data.date} indexed>
   <a class="back" href="/writing/">← Writing</a>
   <h1>{post.data.title}</h1>
   <p class="meta">
